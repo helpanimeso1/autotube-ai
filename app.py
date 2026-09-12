@@ -8,7 +8,6 @@ import moviepy.video.fx.all as vfx
 import webvtt
 
 # --- CONFIGURATION FOR SERVER ---
-# Linux server (like HuggingFace/Streamlit Cloud) ImageMagick path
 if os.path.exists("/usr/bin/convert"):
     os.environ["IMAGEMAGICK_BINARY"] = "/usr/bin/convert"
 
@@ -27,10 +26,8 @@ def time_to_seconds(t_str):
 def add_subtitles(video_clip, vtt_file):
     if not os.path.exists(vtt_file):
         return video_clip
-    
     subs = webvtt.read(vtt_file)
     subtitle_clips = []
-    
     for sub in subs:
         start_time = time_to_seconds(sub.start)
         end_time = time_to_seconds(sub.end)
@@ -38,124 +35,148 @@ def add_subtitles(video_clip, vtt_file):
                             stroke_color='black', stroke_width=3, method='caption', size=(video_clip.w - 100, None))
         txt_clip = txt_clip.set_position(('center', 'center')).set_start(start_time).set_end(end_time)
         subtitle_clips.append(txt_clip)
-        
     return CompositeVideoClip([video_clip] + subtitle_clips)
 
-# --- UI SETUP ---
-st.set_page_config(page_title="AutoTube AI SaaS", page_icon="🚀", layout="wide")
 
-# --- SIDEBAR: SAAS API KEY MANAGEMENT ---
+# --- UI SETUP ---
+st.set_page_config(page_title="AutoX AI Suite", page_icon="🤖", layout="wide")
+
+# --- SIDEBAR: NAVIGATION & KEYS ---
 with st.sidebar:
-    st.header("⚙️ Software Settings")
-    st.write("To use this software, please enter your API keys below. We do not store your keys.")
+    st.title("🤖 AutoX AI")
+    st.markdown("*The Future of Automation*")
+    
+    st.divider()
+    
+    app_mode = st.radio("🛠️ Select Tool:", ["🏢 AutoX Dashboard", "🎬 AutoTube (Video Maker)", "🖼️ AutoThumb (Thumbnails)", "✍️ AutoBlog (Blogging)"])
+    
+    st.divider()
+    
+    st.header("⚙️ User Settings")
     user_gemini_key = st.text_input("🔑 Gemini API Key:", type="password")
     user_pexels_key = st.text_input("🔑 Pexels API Key:", type="password")
     
     st.divider()
-    st.markdown("**Powered by AutoTube AI**\n\n*Created by CEO Prince Kumar Singh*")
+    st.markdown("**Powered by AutoX**\n\n*Founded by Prince Kumar Singh*")
 
-st.title("🎬 AutoTube AI - Viral Shorts Generator")
-st.markdown("Generate Faceless YouTube Shorts automatically in seconds!")
 
-if not user_gemini_key or not user_pexels_key:
-    st.info("👈 Please enter your Gemini and Pexels API keys in the sidebar to start using the software.")
-    st.stop()
-
-# Configure API
-genai.configure(api_key=user_gemini_key)
-model = genai.GenerativeModel('gemini-3.6-flash')
-
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.subheader("1. Video Settings")
-    topic = st.text_input("🎯 Enter video topic:")
-    voice_option = st.selectbox("🌍 Select Language & Voice:", list(LANGUAGE_VOICES.keys()))
-    selected_lang_name, selected_voice_code = LANGUAGE_VOICES[voice_option]
-    enable_captions = st.checkbox("📝 Add Alex Hormozi Style Captions", value=True)
-    generate_btn = st.button("🚀 Generate Viral Video", use_container_width=True)
-
-with col2:
-    st.subheader("2. Live Video Preview")
+# --- PAGE: DASHBOARD ---
+if app_mode == "🏢 AutoX Dashboard":
+    st.title("Welcome to AutoX AI 🚀")
+    st.markdown("### The Ultimate Automation Ecosystem")
+    st.write("At AutoX, our vision is to automate everything from digital content to physical robots. You are currently exploring our Software Suite.")
     
-    if generate_btn:
-        if not topic.strip():
-            st.warning("⚠️ Please enter a topic first.")
-        else:
-            try:
-                # 1. SCRIPT
-                with st.spinner(f"🧠 AI is writing script in {selected_lang_name}..."):
-                    prompt = f"Write a highly engaging, fast-paced 60-second YouTube Shorts script about: {topic}. Language: {selected_lang_name}. Format EXACTLY like this:\nKEYWORDS: keyword1, keyword2, keyword3\nSCRIPT:\n[script]"
-                    text_response = model.generate_content(prompt).text
-                    try:
-                        keywords_part = text_response.split("SCRIPT:")[0].replace("KEYWORDS:", "").strip()
-                        generated_script = text_response.split("SCRIPT:")[1].strip()
-                        search_keywords = [k.strip() for k in keywords_part.split(",")][:3]
-                    except:
-                        generated_script = text_response
-                        search_keywords = [topic.split()[0]]
-                        
-                    st.success("✅ Script Written!")
-                    with st.expander("Show Generated Script"):
-                        st.write(generated_script)
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.info("### 🎬 AutoTube\nGenerate viral faceless YouTube Shorts in 1-click with real HD background videos and realistic AI voices.\n\n**Status: ✅ LIVE**")
+        
+    with col2:
+        st.warning("### 🖼️ AutoThumb\nGenerate hyper-realistic, clickbait YouTube thumbnails using advanced Image AI.\n\n**Status: 🚧 Building...**")
+        
+    with col3:
+        st.success("### ✍️ AutoBlog\nInstantly convert any topic into a 1000-word SEO optimized blog post.\n\n**Status: 🚧 Coming Soon**")
+        
+    st.divider()
+    st.write("👈 Select a tool from the sidebar to begin!")
 
-                # 2. VOICE
-                with st.spinner("🎙️ Generating realistic voiceover..."):
-                    audio_path = "auto_voice.mp3"
-                    vtt_path = "auto_voice.vtt"
-                    subprocess.run(["python3", "-m", "edge_tts", "--text", generated_script, "--voice", selected_voice_code, "--write-media", audio_path, "--write-subtitles", vtt_path], check=True)
+# --- PAGE: AUTOTUBE ---
+elif app_mode == "🎬 AutoTube (Video Maker)":
+    st.title("🎬 AutoTube - Viral Shorts Generator")
+    
+    if not user_gemini_key or not user_pexels_key:
+        st.info("👈 Please enter your Gemini and Pexels API keys in the sidebar to start.")
+        st.stop()
+        
+    genai.configure(api_key=user_gemini_key)
+    model = genai.GenerativeModel('gemini-3.6-flash')
+    
+    col1, col2 = st.columns([1, 2])
 
-                # 3. VIDEOS
-                with st.spinner("🎥 Downloading HD Stock Videos..."):
-                    headers = {"Authorization": user_pexels_key}
-                    video_clips = []
-                    
-                    for kw in search_keywords:
-                        search_url = f"https://api.pexels.com/videos/search?query={kw}&per_page=1&orientation=portrait&size=medium"
-                        res = requests.get(search_url, headers=headers).json()
-                        videos_data = res.get('videos', [])
-                        
-                        if videos_data and videos_data[0].get('video_files'):
-                            link = videos_data[0]['video_files'][0]['link']
-                            vid_path = f"temp_vid_{kw}.mp4"
-                            with open(vid_path, 'wb') as f:
-                                f.write(requests.get(link).content)
-                            clip = VideoFileClip(vid_path).resize(newsize=(720, 1280))
-                            video_clips.append(clip)
-                    
-                    if not video_clips:
-                        img_url = f"https://image.pollinations.ai/prompt/{topic.replace(' ', '%20')}?width=720&height=1280&nologo=true"
-                        with open("fallback.jpg", 'wb') as f:
-                            f.write(requests.get(img_url).content)
-                        video_clips.append(ImageClip("fallback.jpg").resize(newsize=(720, 1280)))
+    with col1:
+        st.subheader("Video Settings")
+        topic = st.text_input("🎯 Enter video topic:")
+        voice_option = st.selectbox("🌍 Select Language & Voice:", list(LANGUAGE_VOICES.keys()))
+        selected_lang_name, selected_voice_code = LANGUAGE_VOICES[voice_option]
+        enable_captions = st.checkbox("📝 Add Alex Hormozi Style Captions", value=True)
+        generate_btn = st.button("🚀 Generate Viral Video", use_container_width=True)
 
-                # 4. MERGE
-                with st.spinner("🎬 Finalizing Video..."):
-                    final_video_path = "viral_short.mp4"
-                    audio_clip = AudioFileClip(audio_path)
-                    
-                    final_visuals = concatenate_videoclips(video_clips, method="compose") if len(video_clips) > 1 else video_clips[0]
-                    
-                    if final_visuals.duration < audio_clip.duration:
-                        final_visuals = final_visuals.fx(vfx.loop, duration=audio_clip.duration)
-                    else:
-                        final_visuals = final_visuals.subclip(0, audio_clip.duration)
-                    
-                    final_video = final_visuals.set_audio(audio_clip)
-                    
-                    if enable_captions:
+    with col2:
+        st.subheader("Live Preview")
+        if generate_btn:
+            if not topic.strip():
+                st.warning("⚠️ Please enter a topic.")
+            else:
+                try:
+                    with st.spinner(f"🧠 Writing script in {selected_lang_name}..."):
+                        prompt = f"Write a fast-paced 60-second YouTube Shorts script about: {topic}. Language: {selected_lang_name}. Format EXACTLY like this:\nKEYWORDS: keyword1, keyword2, keyword3\nSCRIPT:\n[script]"
+                        text_response = model.generate_content(prompt).text
                         try:
-                            final_video = add_subtitles(final_video, vtt_path)
+                            keywords_part = text_response.split("SCRIPT:")[0].replace("KEYWORDS:", "").strip()
+                            generated_script = text_response.split("SCRIPT:")[1].strip()
+                            search_keywords = [k.strip() for k in keywords_part.split(",")][:3]
                         except:
-                            pass
-                    
-                    final_video.write_videofile(final_video_path, fps=24, codec="libx264", audio_codec="aac", logger=None)
-                    
-                    st.success("🎉 Video Ready!")
-                    st.video(final_video_path)
-                    
-                    with open(final_video_path, "rb") as file:
-                        st.download_button("💾 Download Output Video", data=file, file_name="viral_short.mp4", mime="video/mp4")
+                            generated_script = text_response
+                            search_keywords = [topic.split()[0]]
+                        
+                        st.success("✅ Script Written!")
+                        with st.expander("Show Generated Script"):
+                            st.write(generated_script)
 
-            except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
+                    with st.spinner("🎙️ Generating realistic voice..."):
+                        audio_path = "auto_voice.mp3"
+                        vtt_path = "auto_voice.vtt"
+                        subprocess.run(["python3", "-m", "edge_tts", "--text", generated_script, "--voice", selected_voice_code, "--write-media", audio_path, "--write-subtitles", vtt_path], check=True)
+
+                    with st.spinner("🎥 Downloading HD Stock Videos..."):
+                        headers = {"Authorization": user_pexels_key}
+                        video_clips = []
+                        for kw in search_keywords:
+                            res = requests.get(f"https://api.pexels.com/videos/search?query={kw}&per_page=1&orientation=portrait&size=medium", headers=headers).json()
+                            videos_data = res.get('videos', [])
+                            if videos_data and videos_data[0].get('video_files'):
+                                link = videos_data[0]['video_files'][0]['link']
+                                vid_path = f"temp_vid_{kw}.mp4"
+                                with open(vid_path, 'wb') as f:
+                                    f.write(requests.get(link).content)
+                                video_clips.append(VideoFileClip(vid_path).resize(newsize=(720, 1280)))
+                        
+                        if not video_clips:
+                            img_url = f"https://image.pollinations.ai/prompt/{topic.replace(' ', '%20')}?width=720&height=1280&nologo=true"
+                            with open("fallback.jpg", 'wb') as f:
+                                f.write(requests.get(img_url).content)
+                            video_clips.append(ImageClip("fallback.jpg").resize(newsize=(720, 1280)))
+
+                    with st.spinner("🎬 Finalizing Video..."):
+                        final_video_path = "viral_short.mp4"
+                        audio_clip = AudioFileClip(audio_path)
+                        final_visuals = concatenate_videoclips(video_clips, method="compose") if len(video_clips) > 1 else video_clips[0]
+                        if final_visuals.duration < audio_clip.duration:
+                            final_visuals = final_visuals.fx(vfx.loop, duration=audio_clip.duration)
+                        else:
+                            final_visuals = final_visuals.subclip(0, audio_clip.duration)
+                        
+                        final_video = final_visuals.set_audio(audio_clip)
+                        if enable_captions:
+                            try:
+                                final_video = add_subtitles(final_video, vtt_path)
+                            except:
+                                pass
+                        
+                        final_video.write_videofile(final_video_path, fps=24, codec="libx264", audio_codec="aac", logger=None)
+                        st.success("🎉 Video Ready!")
+                        st.video(final_video_path)
+                        with open(final_video_path, "rb") as file:
+                            st.download_button("💾 Download Output Video", data=file, file_name="viral_short.mp4", mime="video/mp4")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+
+# --- PAGE: AUTOTHUMB ---
+elif app_mode == "🖼️ AutoThumb (Thumbnails)":
+    st.title("🖼️ AutoThumb AI")
+    st.warning("🚧 This tool is currently being built by the AutoX Engineering Team. Come back soon!")
+
+# --- PAGE: AUTOBLOG ---
+elif app_mode == "✍️ AutoBlog (Blogging)":
+    st.title("✍️ AutoBlog AI")
+    st.warning("🚧 This tool is currently being built by the AutoX Engineering Team. Come back soon!")
