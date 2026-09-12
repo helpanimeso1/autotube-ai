@@ -41,7 +41,7 @@ def add_subtitles(video_clip, vtt_file):
 # --- UI SETUP ---
 st.set_page_config(page_title="AutoX AI Suite", page_icon="🤖", layout="wide")
 
-# --- SIDEBAR: NAVIGATION & KEYS ---
+# --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
     st.title("🤖 AutoX AI")
     st.markdown("*The Future of Automation*")
@@ -51,14 +51,17 @@ with st.sidebar:
     app_mode = st.radio("🛠️ Select Tool:", ["🏢 AutoX Dashboard", "🎬 AutoTube (Video Maker)", "🖼️ AutoThumb (Thumbnails)", "✍️ AutoBlog (Blogging)"])
     
     st.divider()
-    
-    st.header("⚙️ User Settings")
-    user_gemini_key = st.text_input("🔑 Gemini API Key:", type="password")
-    user_pexels_key = st.text_input("🔑 Pexels API Key:", type="password")
-    
-    st.divider()
     st.markdown("**Powered by AutoX**\n\n*Founded by Prince Kumar Singh*")
 
+# --- SECURE API KEYS (HIDDEN FROM CUSTOMERS) ---
+try:
+    # This reads keys directly from Streamlit's secure vault
+    user_gemini_key = st.secrets["GEMINI_API_KEY"]
+    user_pexels_key = st.secrets["PEXELS_API_KEY"]
+except:
+    # If vault is empty, it will throw an error telling you to add them
+    user_gemini_key = None
+    user_pexels_key = None
 
 # --- PAGE: DASHBOARD ---
 if app_mode == "🏢 AutoX Dashboard":
@@ -85,7 +88,7 @@ elif app_mode == "🎬 AutoTube (Video Maker)":
     st.title("🎬 AutoTube - Viral Shorts Generator")
     
     if not user_gemini_key or not user_pexels_key:
-        st.info("👈 Please enter your Gemini and Pexels API keys in the sidebar to start.")
+        st.error("⚠️ SYSTEM ERROR: The CEO has not set up the API Keys in the Server Vault yet. Please try again later.")
         st.stop()
         
     genai.configure(api_key=user_gemini_key)
@@ -173,8 +176,46 @@ elif app_mode == "🎬 AutoTube (Video Maker)":
 
 # --- PAGE: AUTOTHUMB ---
 elif app_mode == "🖼️ AutoThumb (Thumbnails)":
-    st.title("🖼️ AutoThumb AI")
-    st.warning("🚧 This tool is currently being built by the AutoX Engineering Team. Come back soon!")
+    st.title("🖼️ AutoThumb AI - Viral Thumbnail Maker")
+    st.markdown("Create High-CTR, eye-catching YouTube thumbnails instantly.")
+    
+    if not user_gemini_key:
+        st.error("⚠️ SYSTEM ERROR: The CEO has not set up the API Keys in the Server Vault yet. Please try again later.")
+        st.stop()
+        
+    genai.configure(api_key=user_gemini_key)
+    model = genai.GenerativeModel('gemini-3.6-flash')
+    
+    thumb_topic = st.text_input("🎯 What is your video about?", placeholder="e.g. Discovering Aliens on Mars")
+    thumb_style = st.selectbox("🎨 Select Style:", ["MrBeast Style (Hyper-Realistic, Bright Colors)", "Cinematic Drama (Dark, Epic, Glowing Lights)", "3D Cartoon (Fun, Expressive)"])
+    
+    if st.button("🚀 Generate Thumbnail", use_container_width=True):
+        if not thumb_topic.strip():
+            st.warning("⚠️ Please enter a topic.")
+        else:
+            try:
+                with st.spinner("🧠 AI is designing the perfect clickbait concept..."):
+                    prompt_design = f"I want to generate a viral YouTube thumbnail image for a video about: '{thumb_topic}'. The visual style should be {thumb_style}. Write a highly detailed, dramatic image generation prompt (max 40 words) describing the scene, lighting, subject's expression, and background. DO NOT include any text or words in the image. Just describe the pure visuals."
+                    img_prompt = model.generate_content(prompt_design).text.strip()
+                    
+                    import urllib.parse
+                    safe_prompt = urllib.parse.quote(img_prompt)
+                    
+                with st.spinner("🖼️ Generating 1280x720 HD Image (Takes 10 seconds)..."):
+                    img_url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width=1280&height=720&nologo=true"
+                    img_data = requests.get(img_url).content
+                    
+                    with open("thumbnail.jpg", "wb") as f:
+                        f.write(img_data)
+                        
+                st.success("✅ Thumbnail Ready! (Warning: Always double-check AI images for minor errors)")
+                st.image("thumbnail.jpg", caption=f"AI Concept: {img_prompt}")
+                
+                with open("thumbnail.jpg", "rb") as file:
+                    st.download_button("💾 Download HD Thumbnail", data=file, file_name="AutoThumb_Thumbnail.jpg", mime="image/jpeg", use_container_width=True)
+                    
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
 
 # --- PAGE: AUTOBLOG ---
 elif app_mode == "✍️ AutoBlog (Blogging)":
