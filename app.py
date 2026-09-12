@@ -91,7 +91,7 @@ def is_valid_email(email):
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(pattern, email)
 
-# --- YOUTUBE OFFICIAL UI SETUP & CSS ---
+# --- YOUTUBE OFFICIAL UI SETUP & CSS (BRIGHTER DARK MODE) ---
 st.set_page_config(page_title="YouTube AI Studio", page_icon="▶️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -100,10 +100,10 @@ st.markdown("""
         
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         
-        /* YouTube Dark Mode Background */
+        /* YouTube Soft Dark Mode (Brighter) */
         .stApp {
-            background-color: #0F0F0F;
-            color: #F1F1F1;
+            background-color: #202020;
+            color: #FFFFFF;
             font-family: 'Roboto', sans-serif;
         }
         
@@ -114,10 +114,10 @@ st.markdown("""
             font-weight: 700;
         }
         
-        /* YouTube Dark Sidebar */
+        /* Sidebar (Lighter Grey) */
         [data-testid="stSidebar"] {
-            background-color: #212121 !important;
-            border-right: 1px solid #303030;
+            background-color: #282828 !important;
+            border-right: 1px solid #383838;
         }
         
         /* YouTube Red Pill Buttons */
@@ -125,7 +125,7 @@ st.markdown("""
             background-color: #FF0000;
             color: #FFFFFF !important;
             border: none;
-            border-radius: 24px; /* YouTube Pill shape */
+            border-radius: 24px;
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
             letter-spacing: 0.5px;
@@ -137,25 +137,26 @@ st.markdown("""
             color: #FFFFFF !important;
         }
         
-        /* YouTube Inputs */
+        /* Bright Inputs */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-            background-color: #121212 !important;
-            color: #F1F1F1 !important;
-            border: 1px solid #303030;
+            background-color: #303030 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #484848;
             border-radius: 8px;
             font-family: 'Roboto', sans-serif;
+            font-size: 16px;
         }
         .stTextInput input:focus {
-            border-color: #3EA6FF; /* YouTube Blue Focus */
+            border-color: #3EA6FF;
             box-shadow: none;
         }
         
-        /* Info/Success/Error Boxes */
+        /* Brighter Info Boxes */
         .stAlert {
-            background-color: #212121 !important;
-            border: 1px solid #303030;
+            background-color: #282828 !important;
+            border: 1px solid #404040;
             border-radius: 8px;
-            color: #F1F1F1;
+            color: #FFFFFF;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -173,10 +174,9 @@ if not st.session_state.logged_in_email:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("<br><br>", unsafe_allow_html=True)
-        # Using a YouTube-like Play Icon for branding
         st.markdown("<h1 style='text-align: center; color: #FF0000; font-size: 50px;'>▶️</h1>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align: center;'>YouTube AI Studio</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #AAAAAA;'>Sign in with your Creator Email to continue</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #CCCCCC;'>Sign in with your Creator Email to continue</p>", unsafe_allow_html=True)
         st.divider()
         
         email_input = st.text_input("Email or phone", placeholder="Enter your email")
@@ -189,42 +189,63 @@ if not st.session_state.logged_in_email:
                 
                 # SCENARIO 1: NEW USER
                 if not user or not user.get('password'):
-                    st.info("Create a new Creator Account to continue.")
                     
-                    if not st.session_state.otp_sent:
-                        if st.button("Send Verification Code", use_container_width=True):
-                            with st.spinner("Sending code..."):
-                                otp = str(random.randint(100000, 999999))
-                                if send_otp_email(email_input.strip(), otp, "signup"):
-                                    st.session_state.otp_sent = True
-                                    st.session_state.expected_otp = otp
-                                    st.session_state.auth_purpose = "signup"
-                                    st.rerun()
-                                else:
-                                    st.error("Failed to send email. Check Server Config.")
-                    
-                    if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "signup":
-                        st.success("Verification code sent to your email.")
-                        otp_in = st.text_input("Enter code")
-                        new_pwd = st.text_input("Create password", type="password")
-                        
-                        if st.button("Next", use_container_width=True):
-                            if otp_in.strip() != st.session_state.expected_otp:
-                                st.error("Wrong code. Try again.")
-                            elif len(new_pwd) < 4:
+                    # 👑 VIP BYPASS FOR ADMIN (CEO)
+                    if email_input.strip() == ADMIN_EMAIL:
+                        st.info("👑 **CEO RECOGNIZED.** Welcome Boss.")
+                        st.markdown("Since this is your first time, please create your Master Password.")
+                        new_pwd = st.text_input("Create Master Password", type="password")
+                        if st.button("Set Password & Login", use_container_width=True):
+                            if len(new_pwd) < 4:
                                 st.warning("Password must be at least 4 chars.")
                             else:
-                                with st.spinner("Creating account..."):
+                                with st.spinner("Setting up CEO account..."):
                                     if not user:
                                         user = create_user(email_input.strip(), new_pwd)
                                     else:
                                         update_user_password(email_input.strip(), new_pwd)
-                                        user['has_paid'] = user.get('has_paid', False)
-                                    
                                     st.session_state.logged_in_email = email_input.strip()
-                                    st.session_state.has_paid = user.get('has_paid', False)
-                                    st.session_state.otp_sent = False
+                                    st.session_state.has_paid = True # Admin always has access
                                     st.rerun()
+                                    
+                    # NORMAL CUSTOMER FLOW (REQUIRES OTP)
+                    else:
+                        st.info("Create a new Creator Account to continue.")
+                        
+                        if not st.session_state.otp_sent:
+                            if st.button("Send Verification Code", use_container_width=True):
+                                with st.spinner("Sending code..."):
+                                    otp = str(random.randint(100000, 999999))
+                                    if send_otp_email(email_input.strip(), otp, "signup"):
+                                        st.session_state.otp_sent = True
+                                        st.session_state.expected_otp = otp
+                                        st.session_state.auth_purpose = "signup"
+                                        st.rerun()
+                                    else:
+                                        st.error("Failed to send email. Check Server Config.")
+                        
+                        if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "signup":
+                            st.success("Verification code sent to your email.")
+                            otp_in = st.text_input("Enter code")
+                            new_pwd = st.text_input("Create password", type="password")
+                            
+                            if st.button("Next", use_container_width=True):
+                                if otp_in.strip() != st.session_state.expected_otp:
+                                    st.error("Wrong code. Try again.")
+                                elif len(new_pwd) < 4:
+                                    st.warning("Password must be at least 4 chars.")
+                                else:
+                                    with st.spinner("Creating account..."):
+                                        if not user:
+                                            user = create_user(email_input.strip(), new_pwd)
+                                        else:
+                                            update_user_password(email_input.strip(), new_pwd)
+                                            user['has_paid'] = user.get('has_paid', False)
+                                        
+                                        st.session_state.logged_in_email = email_input.strip()
+                                        st.session_state.has_paid = user.get('has_paid', False)
+                                        st.session_state.otp_sent = False
+                                        st.rerun()
                 
                 # SCENARIO 2: EXISTING USER
                 else:
@@ -235,7 +256,11 @@ if not st.session_state.logged_in_email:
                         if st.button("Next", use_container_width=True):
                             if pwd_input == user['password']:
                                 st.session_state.logged_in_email = user['email']
-                                st.session_state.has_paid = user['has_paid']
+                                # Auto-grant access to admin even if has_paid is False
+                                if user['email'] == ADMIN_EMAIL:
+                                    st.session_state.has_paid = True
+                                else:
+                                    st.session_state.has_paid = user['has_paid']
                                 st.rerun()
                             else:
                                 st.error("Wrong password. Try again.")
@@ -260,7 +285,10 @@ if not st.session_state.logged_in_email:
                         if st.button("Verify", use_container_width=True):
                             if otp_in.strip() == st.session_state.expected_otp:
                                 st.session_state.logged_in_email = user['email']
-                                st.session_state.has_paid = user['has_paid']
+                                if user['email'] == ADMIN_EMAIL:
+                                    st.session_state.has_paid = True
+                                else:
+                                    st.session_state.has_paid = user['has_paid']
                                 st.session_state.otp_sent = False
                                 st.rerun()
                             else:
@@ -272,7 +300,7 @@ if not st.session_state.logged_in_email:
 # --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
     st.markdown("<h2 style='color: white;'>▶️ YouTube AI Studio</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #AAAAAA;'>{st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #CCCCCC;'>{st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
     if st.button("Sign out"):
         st.session_state.logged_in_email = None
         st.rerun()
