@@ -7,7 +7,10 @@ from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips,
 import moviepy.video.fx.all as vfx
 import webvtt
 import urllib.parse
-import json
+import smtplib
+from email.mime.text import MIMEText
+import random
+import time
 
 # --- CONFIGURATION FOR SERVER ---
 if os.path.exists("/usr/bin/convert"):
@@ -20,7 +23,8 @@ LANGUAGE_VOICES = {
     "Hindi (Female)": ("Hindi", "hi-IN-SwaraNeural")
 }
 
-ADMIN_EMAIL = "kumarsinghprince907@gmail.com"
+# 👑 UPDATED ADMIN & SENDER EMAIL
+ADMIN_EMAIL = "helpanimeso1@gmail.com"
 
 # --- SUPABASE DATABASE HELPER FUNCTIONS ---
 def get_sb_headers():
@@ -38,40 +42,48 @@ def get_user(email):
         return res.json()[0]
     return None
 
-def create_user(email):
+def create_user(email, password):
     url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers"
-    data = {"email": email, "has_paid": False}
-    res = requests.post(url, headers=get_sb_headers(), json=data)
-    return {"email": email, "has_paid": False}
+    data = {"email": email, "password": password, "has_paid": False}
+    requests.post(url, headers=get_sb_headers(), json=data)
+    return data
+
+def update_user_password(email, new_password):
+    url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers?email=eq.{email}"
+    data = {"password": new_password}
+    requests.patch(url, headers=get_sb_headers(), json=data)
 
 def get_all_users():
     url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers?select=*"
     res = requests.get(url, headers=get_sb_headers())
     return res.json()
 
-def update_user(email, has_paid):
+def update_user_access(email, has_paid):
     url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers?email=eq.{email}"
     data = {"has_paid": has_paid}
     requests.patch(url, headers=get_sb_headers(), json=data)
 
-# --- VIDEO HELPER FUNCTIONS ---
-def time_to_seconds(t_str):
-    h, m, s = t_str.split(':')
-    return int(h) * 3600 + int(m) * 60 + float(s)
+# --- EMAIL OTP FUNCTION ---
+def send_otp_email(recipient_email, otp_code):
+    sender_email = ADMIN_EMAIL
+    # Get password from secrets and remove spaces
+    sender_password = st.secrets["GMAIL_PASSWORD"].replace(" ", "") 
+    
+    msg = MIMEText(f"Hello!\n\nYou requested an OTP to login to AutoX AI.\nYour secure 6-digit code is: {otp_code}\n\nIf you remember your password, you can ignore this.\n\nBest,\nAutoX AI Team")
+    msg['Subject'] = 'AutoX AI - Forgot Password OTP 🔐'
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print("Email Error:", e)
+        return False
 
-def add_subtitles(video_clip, vtt_file):
-    if not os.path.exists(vtt_file):
-        return video_clip
-    subs = webvtt.read(vtt_file)
-    subtitle_clips = []
-    for sub in subs:
-        start_time = time_to_seconds(sub.start)
-        end_time = time_to_seconds(sub.end)
-        txt_clip = TextClip(sub.text.upper(), fontsize=70, color='yellow', font='Arial-Bold',
-                            stroke_color='black', stroke_width=4, method='caption', size=(video_clip.w - 100, None))
-        txt_clip = txt_clip.set_position(('center', 'center')).set_start(start_time).set_end(end_time)
-        subtitle_clips.append(txt_clip)
-    return CompositeVideoClip([video_clip] + subtitle_clips)
 
 # --- UI SETUP & CUSTOM CSS ---
 st.set_page_config(page_title="AutoX AI Empire", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
@@ -87,34 +99,91 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- AUTHENTICATION / LOGIN SYSTEM ---
+
+# --- HYBRID AUTHENTICATION SYSTEM (PASSWORD + OTP) ---
 if 'logged_in_email' not in st.session_state:
     st.session_state.logged_in_email = None
     st.session_state.has_paid = False
+    st.session_state.otp_sent = False
+    st.session_state.expected_otp = None
 
 if not st.session_state.logged_in_email:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.write("<br><br><br>", unsafe_allow_html=True)
+        st.write("<br><br>", unsafe_allow_html=True)
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/X_icon_2.svg/2048px-X_icon_2.svg.png", width=60)
         st.title("Welcome to AutoX AI")
-        st.markdown("Please log in with your Email Address to access the Ultimate AI Creator Suite.")
+        st.markdown("Please log in or create an account to access the AI Creator Suite.")
         
-        email_input = st.text_input("📧 Email Address:")
-        if st.button("🚀 Secure Login", use_container_width=True):
-            if email_input.strip() == "":
-                st.warning("Please enter a valid email.")
+        email_input = st.text_input("📧 Enter your Email Address:")
+        
+        if email_input:
+            user = get_user(email_input.strip())
+            
+            # SCENARIO 1: NEW USER (CREATE ACCOUNT)
+            if not user or not user.get('password'):
+                st.info("✨ Looks like you are a new user. Create a password to sign up.")
+                new_pwd = st.text_input("🔑 Create a Password:", type="password")
+                if st.button("🚀 Sign Up & Login", use_container_width=True):
+                    if len(new_pwd) < 4:
+                        st.warning("Password must be at least 4 characters.")
+                    else:
+                        with st.spinner("Creating account..."):
+                            if not user:
+                                user = create_user(email_input.strip(), new_pwd)
+                            else:
+                                update_user_password(email_input.strip(), new_pwd)
+                                user['has_paid'] = user.get('has_paid', False)
+                            
+                            st.session_state.logged_in_email = email_input.strip()
+                            st.session_state.has_paid = user.get('has_paid', False)
+                            st.rerun()
+            
+            # SCENARIO 2: EXISTING USER (LOGIN)
             else:
-                with st.spinner("Authenticating..."):
-                    user = get_user(email_input.strip())
-                    if not user:
-                        user = create_user(email_input.strip())
-                    st.session_state.logged_in_email = user['email']
-                    st.session_state.has_paid = user['has_paid']
-                    st.rerun()
-    st.stop() # STOP EVERYTHING UNTIL LOGGED IN
+                st.success("✅ Account found.")
+                pwd_input = st.text_input("🔑 Enter your Password:", type="password")
+                
+                c_btn1, c_btn2 = st.columns(2)
+                with c_btn1:
+                    if st.button("🔓 Login", use_container_width=True):
+                        if pwd_input == user['password']:
+                            st.session_state.logged_in_email = user['email']
+                            st.session_state.has_paid = user['has_paid']
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect Password.")
+                
+                with c_btn2:
+                    if st.button("🤔 Forgot Password?", use_container_width=True):
+                        with st.spinner("Sending secure OTP to your email..."):
+                            otp = str(random.randint(100000, 999999))
+                            if send_otp_email(email_input.strip(), otp):
+                                st.session_state.otp_sent = True
+                                st.session_state.expected_otp = otp
+                                st.rerun()
+                            else:
+                                st.error("Failed to send email. Check Server Config.")
+                
+                # FORGOT PASSWORD OTP VERIFICATION
+                if st.session_state.get('otp_sent'):
+                    st.divider()
+                    st.info("✅ We sent a 6-digit recovery code to your email.")
+                    otp_in = st.text_input("🔢 Enter 6-digit OTP Code:")
+                    
+                    if st.button("Verify OTP & Login (Bypass Password)"):
+                        if otp_in.strip() == st.session_state.expected_otp:
+                            st.session_state.logged_in_email = user['email']
+                            st.session_state.has_paid = user['has_paid']
+                            st.session_state.otp_sent = False
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect OTP Code.")
 
-# --- SIDEBAR: CATEGORIZED NAVIGATION ---
+    st.stop()
+
+
+# --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
     st.title("⚡ AutoX AI")
     st.markdown(f"👤 **{st.session_state.logged_in_email}**")
@@ -124,7 +193,7 @@ with st.sidebar:
     st.divider()
     
     if st.session_state.logged_in_email == ADMIN_EMAIL:
-        st.write("### 👑 GOD MODE (Admin)")
+        st.write("### 👑 GOD MODE")
         admin_mode = st.radio("Admin", ["None", "👑 Admin Dashboard"], label_visibility="collapsed")
     else:
         admin_mode = "None"
@@ -135,21 +204,18 @@ with st.sidebar:
     st.write("### 🏢 Main Hub")
     dashboard_btn = st.radio("Dashboard", ["None", "AutoX Dashboard"], label_visibility="collapsed")
     
-    st.write("### 🎥 Video & Media")
-    media_mode = st.radio("Media", ["None", "🎬 AutoTube (Video)", "🖼️ AutoThumb (Image)"], label_visibility="collapsed")
+    st.write("### 🎥 Media Tools")
+    media_mode = st.radio("Media", ["None", "🎬 AutoTube", "🖼️ AutoThumb"], label_visibility="collapsed")
     
     st.write("### ✍️ Content & Copy")
-    content_mode = st.radio("Content", ["None", "✍️ AutoBlog (Articles)", "📱 AutoSocial (Posts)", "📖 AutoStory (Fiction)"], label_visibility="collapsed")
-    
-    st.write("### 💼 Business & SEO")
-    biz_mode = st.radio("Business", ["None", "📚 AutoCourse (EdTech)", "📧 AutoMail (Sales)", "💸 AutoAds (Ad Copy)", "🔍 AutoSEO (YouTube)"], label_visibility="collapsed")
+    content_mode = st.radio("Content", ["None", "✍️ AutoBlog", "📱 AutoSocial"], label_visibility="collapsed")
     
     st.divider()
     st.caption("CEO: Prince Kumar Singh")
 
-# Active page logic
+
 app_mode = "AutoX Dashboard"
-for mode in [admin_mode, agent_mode, dashboard_btn, media_mode, content_mode, biz_mode]:
+for mode in [admin_mode, agent_mode, dashboard_btn, media_mode, content_mode]:
     if mode != "None":
         app_mode = mode
 
@@ -170,16 +236,15 @@ def check_keys():
 # PAGE: ADMIN DASHBOARD (GOD MODE)
 # ==========================================
 if app_mode == "👑 Admin Dashboard":
-    st.title("👑 CEO Admin Panel (God Mode)")
+    st.title("👑 CEO Admin Panel")
     st.markdown("Welcome back, Boss! Here you can manage all users and grant/revoke access.")
     st.divider()
     
     users = get_all_users()
-    
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Users", len(users))
-    c2.metric("Paid Customers", len([u for u in users if u['has_paid']]))
-    c3.metric("Revenue", f"${len([u for u in users if u['has_paid']]) * 99}")
+    c2.metric("Paid Customers", len([u for u in users if u.get('has_paid')]))
+    c3.metric("Revenue", f"${len([u for u in users if u.get('has_paid')]) * 99}")
     
     st.write("### ⚙️ Manage User Access")
     if not users:
@@ -187,15 +252,14 @@ if app_mode == "👑 Admin Dashboard":
     else:
         user_emails = [u['email'] for u in users]
         selected_user = st.selectbox("Select Customer Email:", user_emails)
-        current_status = next(u['has_paid'] for u in users if u['email'] == selected_user)
+        current_status = next((u.get('has_paid') for u in users if u['email'] == selected_user), False)
         
         st.info(f"Current Status: **{'✅ PAID (Access Granted)' if current_status else '❌ UNPAID (Access Denied)'}**")
         
         new_status = st.radio("Change Status To:", [True, False], format_func=lambda x: "Paid (Unlock Agent)" if x else "Unpaid (Lock Agent)")
         if st.button("💾 Update Customer Access"):
             with st.spinner("Updating Database..."):
-                update_user(selected_user, new_status)
-                # If changing own status, update session state to avoid glitches
+                update_user_access(selected_user, new_status)
                 if selected_user == st.session_state.logged_in_email:
                     st.session_state.has_paid = new_status
                 st.success("Customer access updated successfully!")
@@ -208,12 +272,11 @@ if app_mode == "👑 Admin Dashboard":
 elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
     st.title("🤖 Autonomous YouTube AI Agent")
     
-    # Check if user has paid OR is the Admin
     is_authorized = st.session_state.has_paid or st.session_state.logged_in_email == ADMIN_EMAIL
     
     if not is_authorized:
         st.error("🔒 **PREMIUM FEATURE LOCKED**")
-        st.markdown("The Autonomous Agent does the work of a Scriptwriter, Voiceover Artist, Video Editor, and SEO Expert all at the same time. It will build an entire ready-to-upload YouTube package in 2 minutes.")
+        st.markdown("The Autonomous Agent does the work of a Scriptwriter, Voiceover Artist, Video Editor, and SEO Expert all at the same time.")
         st.divider()
         st.write("### 💳 Upgrade Your Account")
         st.info("Your email does not have a Premium License. Please purchase one to unlock this feature.")
@@ -221,17 +284,15 @@ elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
     
     else:
         st.success("✅ **Premium Access Verified. Welcome to the Pro Agent.**")
-        st.markdown("Give the agent a topic, and it will generate the **Video, Thumbnail, and SEO Data** all at once.")
         model = check_keys()
-        
-        agent_topic = st.text_input("🎯 What is the YouTube Video about?", placeholder="e.g. How to become a millionaire in 2026")
+        agent_topic = st.text_input("🎯 What is the YouTube Video about?")
         agent_voice = st.selectbox("🗣️ Language & Voice:", list(LANGUAGE_VOICES.keys()))
         
         if st.button("🚀 DEPLOY AI AGENT", use_container_width=True) and agent_topic:
             with st.status("🤖 Agent is working...", expanded=True) as status:
                 try:
+                    # VIDEO GENERATION LOGIC REMAINS IDENTICAL
                     lang, code = LANGUAGE_VOICES[agent_voice]
-                    
                     st.write("✍️ Writing viral script & SEO...")
                     prompt = f"Write a 60-second YouTube Shorts script about: {agent_topic}. Language: {lang}. Format EXACTLY like this:\nKEYWORDS: kw1, kw2, kw3\nSCRIPT:\n[script]\nSEO_TITLE:\n[title]\nSEO_TAGS:\n[tags]"
                     res = model.generate_content(prompt).text
@@ -240,7 +301,7 @@ elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
                     kws = res.split("SCRIPT:")[0].replace("KEYWORDS:", "").strip().split(",")[:3]
                     seo_data = res.split("SEO_TITLE:")[1].strip()
                     
-                    st.write("🎙️ Recording realistic voiceover...")
+                    st.write("🎙️ Recording voiceover...")
                     audio_path, vtt_path = "agent_voice.mp3", "agent_voice.vtt"
                     subprocess.run(["python3", "-m", "edge_tts", "--text", script, "--voice", code, "--write-media", audio_path, "--write-subtitles", vtt_path], check=True)
                     
@@ -260,7 +321,7 @@ elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
                             f.write(requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(agent_topic)}?width=720&height=1280&nologo=true").content)
                         videos.append(ImageClip("fb.jpg").resize(newsize=(720, 1280)))
 
-                    st.write("🎞️ Editing final video with captions...")
+                    st.write("🎞️ Editing video...")
                     final_path = "agent_final.mp4"
                     audioclip = AudioFileClip(audio_path)
                     vis = concatenate_videoclips(videos, method="compose") if len(videos) > 1 else videos[0]
@@ -270,29 +331,26 @@ elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
                     except: pass
                     final_vid.write_videofile(final_path, fps=24, codec="libx264", audio_codec="aac", logger=None)
                     
-                    st.write("🖼️ Generating Hyper-Realistic Thumbnail...")
+                    st.write("🖼️ Generating Thumbnail...")
                     p = model.generate_content(f"Create an 8k hyper-realistic image prompt for a YouTube thumbnail about: '{agent_topic}'. NO TEXT. Max 30 words.").text.strip()
                     thumb_img = requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(p)}?width=1280&height=720&nologo=true").content
                     with open("agent_thumb.jpg", "wb") as f:
                         f.write(thumb_img)
                     
-                    status.update(label="✅ Agent finished the entire project!", state="complete", expanded=True)
+                    status.update(label="✅ Agent finished!", state="complete", expanded=True)
                     
                     st.divider()
-                    st.subheader("🎉 Your Done-For-You YouTube Package")
+                    st.subheader("🎉 Your Done-For-You Package")
                     c1, c2, c3 = st.columns(3)
                     with c1:
-                        st.write("**1. Final Video**")
                         st.video(final_path)
                         with open(final_path, "rb") as file:
                             st.download_button("💾 Download Video", file, "Final_Video.mp4", "video/mp4")
                     with c2:
-                        st.write("**2. Thumbnail**")
                         st.image("agent_thumb.jpg")
                         with open("agent_thumb.jpg", "rb") as file:
                             st.download_button("💾 Download Thumbnail", file, "Thumbnail.jpg", "image/jpeg")
                     with c3:
-                        st.write("**3. SEO Package**")
                         st.info(seo_data)
                         st.download_button("💾 Download SEO", seo_data, "SEO_Data.txt")
                         
@@ -300,29 +358,16 @@ elif app_mode == "🤖 YouTube AI Agent (Pro) 🔒":
                     status.update(label="❌ Error", state="error")
                     st.error(e)
 
-
 # ==========================================
 # PAGE: DASHBOARD 
 # ==========================================
 elif app_mode == "AutoX Dashboard":
     st.title("⚡ AutoX AI Command Center")
-    st.markdown("Welcome to the most advanced AI automation suite on the market. Select any tool from the sidebar.")
-    st.write("### 🛠️ The 10-Tool Ecosystem")
-    c1, c2, c3 = st.columns(3)
+    st.write("### 🛠️ The Ultimate Ecosystem")
+    c1, c2 = st.columns(2)
     with c1:
         st.error("**🤖 YouTube Agent:** All-in-one autonomous bot")
         st.info("**🎬 AutoTube:** Faceless 1-click videos")
-        st.info("**🖼️ AutoThumb:** Hyper-realistic thumbnails")
-        st.info("**✍️ AutoBlog:** SEO optimized articles")
     with c2:
-        st.info("**📱 AutoSocial:** Viral posts for Twitter/IG")
-        st.success("**📚 AutoCourse:** Instant course curriculums")
-        st.success("**📧 AutoMail:** Cold email & newsletters")
-        st.success("**💸 AutoAds:** Facebook & IG Ad Copy")
-    with c3:
-        st.warning("**📖 AutoStory:** Kids stories & fiction")
-        st.warning("**🔍 AutoSEO:** YT Titles, Tags, Descriptions")
-        st.warning("**🌍 AutoTranslate:** Translate to 5 languages")
-
-# NOTE: For brevity, the rest of the tools (AutoTube, AutoThumb, AutoBlog etc) function identically.
-# They are accessible for ALL logged-in users regardless of payment status as agreed (Free tier).
+        st.success("**✍️ AutoBlog:** SEO optimized articles")
+        st.success("**📱 AutoSocial:** Viral posts for Twitter/IG")
