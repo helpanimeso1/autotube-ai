@@ -91,7 +91,7 @@ def is_valid_email(email):
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(pattern, email)
 
-# --- YOUTUBE OFFICIAL UI SETUP & CSS (BRIGHTER DARK MODE) ---
+# --- YOUTUBE OFFICIAL LIGHT MODE CSS ---
 st.set_page_config(page_title="YouTube AI Studio", page_icon="▶️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -100,29 +100,32 @@ st.markdown("""
         
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         
-        /* YouTube Soft Dark Mode (Brighter) */
+        /* YouTube Light Mode Background */
         .stApp {
-            background-color: #202020;
-            color: #FFFFFF;
+            background-color: #FFFFFF !important;
+            color: #0F0F0F !important;
             font-family: 'Roboto', sans-serif;
         }
         
-        /* Headings */
-        h1, h2, h3 {
+        /* Text Colors */
+        h1, h2, h3, h4, h5, h6, p, span, div {
             font-family: 'Roboto', sans-serif;
-            color: #FFFFFF;
-            font-weight: 700;
         }
         
-        /* Sidebar (Lighter Grey) */
+        h1, h2, h3 { color: #0F0F0F !important; font-weight: 700; }
+        
+        /* Sidebar Light */
         [data-testid="stSidebar"] {
-            background-color: #282828 !important;
-            border-right: 1px solid #383838;
+            background-color: #F8F9FA !important;
+            border-right: 1px solid #E5E5E5;
+        }
+        [data-testid="stSidebar"] * {
+            color: #0F0F0F !important;
         }
         
         /* YouTube Red Pill Buttons */
         .stButton>button {
-            background-color: #FF0000;
+            background-color: #FF0000 !important;
             color: #FFFFFF !important;
             border: none;
             border-radius: 24px;
@@ -133,31 +136,33 @@ st.markdown("""
             padding: 10px 24px;
         }
         .stButton>button:hover {
-            background-color: #CC0000;
-            color: #FFFFFF !important;
+            background-color: #CC0000 !important;
         }
         
-        /* Bright Inputs */
+        /* Light Inputs */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-            background-color: #303030 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #484848;
+            background-color: #FFFFFF !important;
+            color: #0F0F0F !important;
+            border: 1px solid #CCCCCC !important;
             border-radius: 8px;
             font-family: 'Roboto', sans-serif;
             font-size: 16px;
         }
         .stTextInput input:focus {
-            border-color: #3EA6FF;
-            box-shadow: none;
+            border-color: #065FD4 !important; /* YouTube Blue */
+            box-shadow: none !important;
         }
         
-        /* Brighter Info Boxes */
+        /* Light Info Boxes */
         .stAlert {
-            background-color: #282828 !important;
-            border: 1px solid #404040;
+            background-color: #F8F9FA !important;
+            border: 1px solid #E5E5E5 !important;
             border-radius: 8px;
-            color: #FFFFFF;
+            color: #0F0F0F !important;
         }
+        
+        /* Fix placeholder colors */
+        ::placeholder { color: #737373 !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -174,9 +179,9 @@ if not st.session_state.logged_in_email:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("<br><br>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center; color: #FF0000; font-size: 50px;'>▶️</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #FF0000 !important; font-size: 50px;'>▶️</h1>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align: center;'>YouTube AI Studio</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #CCCCCC;'>Sign in with your Creator Email to continue</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #606060 !important;'>Sign in with your Creator Email to continue</p>", unsafe_allow_html=True)
         st.divider()
         
         email_input = st.text_input("Email or phone", placeholder="Enter your email")
@@ -299,8 +304,8 @@ if not st.session_state.logged_in_email:
 
 # --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
-    st.markdown("<h2 style='color: white;'>▶️ YouTube AI Studio</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #CCCCCC;'>{st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #0F0F0F !important;'>▶️ YouTube AI Studio</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #606060 !important;'>{st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
     if st.button("Sign out"):
         st.session_state.logged_in_email = None
         st.rerun()
