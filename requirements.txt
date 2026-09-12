@@ -1,0 +1,6 @@
+streamlit
+edge-tts
+google-generativeai
+moviepy==1.0.3
+requests
+webvtt-py
