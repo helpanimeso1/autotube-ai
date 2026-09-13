@@ -1,6 +1,8 @@
 streamlit
-edge-tts
 google-generativeai
-moviepy==1.0.3
+supabase
 requests
 webvtt-py
+moviepy
+edge-tts
+pillow
