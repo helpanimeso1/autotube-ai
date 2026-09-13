@@ -68,13 +68,13 @@ def send_otp_email(recipient_email, otp_code, purpose="login"):
     sender_email = ADMIN_EMAIL
     sender_password = st.secrets["GMAIL_PASSWORD"].replace(" ", "") 
     
-    msg_body = f"Hello Creator,\n\nYour YouTube AI Studio verification code is: {otp_code}\n\nDo not share this code with anyone.\n\nThanks,\nThe AutoX YouTube Team"
+    msg_body = f"Hello,\n\nYour AutoX verification code is: {otp_code}\n\nDo not share this code with anyone.\n\nThanks,\nAutoX System"
     if purpose == "signup":
-         msg_body = f"Welcome to YouTube AI Studio by AutoX!\n\nYour account verification code is: {otp_code}\n\nEnter this to activate your Creator account."
+         msg_body = f"Welcome to AutoX!\n\nYour account verification code is: {otp_code}\n\nEnter this to activate your account."
          
     msg = MIMEText(msg_body)
-    msg['Subject'] = 'YouTube AI Studio - Verification Code'
-    msg['From'] = f"YouTube AI Studio <{sender_email}>"
+    msg['Subject'] = 'AutoX - Verification Code'
+    msg['From'] = f"AutoX <{sender_email}>"
     msg['To'] = recipient_email
     
     try:
@@ -91,83 +91,106 @@ def is_valid_email(email):
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(pattern, email)
 
-# --- YOUTUBE OFFICIAL LIGHT MODE CSS ---
-st.set_page_config(page_title="YouTube AI Studio", page_icon="▶️", layout="wide", initial_sidebar_state="expanded")
+
+# --- UI SETUP & CSS ---
+st.set_page_config(page_title="AutoX App Portal", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
         
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         
-        /* YouTube Light Mode Background */
+        /* AutoX Premium Light Theme */
         .stApp {
-            background-color: #FFFFFF !important;
-            color: #0F0F0F !important;
+            background-color: #FAFAFA !important;
+            color: #111111 !important;
             font-family: 'Roboto', sans-serif;
         }
         
-        /* Text Colors */
-        h1, h2, h3, h4, h5, h6, p, span, div {
-            font-family: 'Roboto', sans-serif;
-        }
+        /* Headings */
+        h1, h2, h3, h4 { color: #111111 !important; font-weight: 900; letter-spacing: -0.5px; }
         
-        h1, h2, h3 { color: #0F0F0F !important; font-weight: 700; }
+        /* AutoX Brand Gradient Text */
+        .brand-text {
+            background: linear-gradient(90deg, #FF0055 0%, #0033FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
         
         /* Sidebar Light */
         [data-testid="stSidebar"] {
-            background-color: #F8F9FA !important;
-            border-right: 1px solid #E5E5E5;
+            background-color: #FFFFFF !important;
+            border-right: 1px solid #EBEBEB;
+            box-shadow: 2px 0px 15px rgba(0,0,0,0.02);
         }
-        [data-testid="stSidebar"] * {
-            color: #0F0F0F !important;
-        }
+        [data-testid="stSidebar"] * { color: #111111 !important; }
         
-        /* YouTube Red Pill Buttons */
+        /* Premium Buttons */
         .stButton>button {
-            background-color: #FF0000 !important;
+            background: linear-gradient(90deg, #111111 0%, #333333 100%) !important;
             color: #FFFFFF !important;
             border: none;
-            border-radius: 24px;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            transition: 0.2s;
-            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
         }
         .stButton>button:hover {
-            background-color: #CC0000 !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
         }
         
-        /* Light Inputs */
+        /* Inputs */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
             background-color: #FFFFFF !important;
-            color: #0F0F0F !important;
-            border: 1px solid #CCCCCC !important;
+            color: #111111 !important;
+            border: 1px solid #E0E0E0 !important;
             border-radius: 8px;
-            font-family: 'Roboto', sans-serif;
             font-size: 16px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
-        .stTextInput input:focus {
-            border-color: #065FD4 !important; /* YouTube Blue */
-            box-shadow: none !important;
-        }
+        .stTextInput input:focus { border-color: #0033FF !important; }
         
-        /* Light Info Boxes */
-        .stAlert {
-            background-color: #F8F9FA !important;
-            border: 1px solid #E5E5E5 !important;
-            border-radius: 8px;
-            color: #0F0F0F !important;
+        /* Layout Cards */
+        .feature-card {
+            background: #FFFFFF;
+            border: 1px solid #EBEBEB;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            margin-bottom: 16px;
         }
-        
-        /* Fix placeholder colors */
-        ::placeholder { color: #737373 !important; }
+        ::placeholder { color: #999999 !important; }
     </style>
 """, unsafe_allow_html=True)
 
 
-# --- ULTRA-SECURE HYBRID AUTHENTICATION SYSTEM ---
+# --- ADVANCED VIDEO EDITING HELPERS ---
+def add_subtitles(video_clip, vtt_file, width, height):
+    if not os.path.exists(vtt_file):
+        return video_clip
+    subs = webvtt.read(vtt_file)
+    subtitle_clips = []
+    for sub in subs:
+        # time formatting
+        h, m, s = sub.start.split(':')
+        start_time = int(h) * 3600 + int(m) * 60 + float(s)
+        h, m, s = sub.end.split(':')
+        end_time = int(h) * 3600 + int(m) * 60 + float(s)
+        
+        # Modern subtitle styling (TikTok/Reels style)
+        txt_clip = TextClip(sub.text.upper(), fontsize=int(width/15), color='white', font='Arial-Bold',
+                            stroke_color='black', stroke_width=3, method='caption', size=(width - 100, None))
+        
+        # Add slight pop-in effect (fake zoom by scaling up slightly, simulated by duration)
+        txt_clip = txt_clip.set_position(('center', 'center')).set_start(start_time).set_end(end_time)
+        subtitle_clips.append(txt_clip)
+    return CompositeVideoClip([video_clip] + subtitle_clips)
+
+
+# --- AUTOX PORTAL (LOGIN SCREEN) ---
 if 'logged_in_email' not in st.session_state:
     st.session_state.logged_in_email = None
     st.session_state.has_paid = False
@@ -178,13 +201,12 @@ if 'logged_in_email' not in st.session_state:
 if not st.session_state.logged_in_email:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.write("<br><br>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center; color: #FF0000 !important; font-size: 50px;'>▶️</h1>", unsafe_allow_html=True)
-        st.markdown("<h2 style='text-align: center;'>YouTube AI Studio</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #606060 !important;'>Sign in with your Creator Email to continue</p>", unsafe_allow_html=True)
+        st.write("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'><span class='brand-text'>AutoX</span> Portal</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #606060 !important;'>Sign in to access your AI Workforce.</p>", unsafe_allow_html=True)
         st.divider()
         
-        email_input = st.text_input("Email or phone", placeholder="Enter your email")
+        email_input = st.text_input("Work Email", placeholder="Enter your email")
         
         if email_input:
             if not is_valid_email(email_input):
@@ -198,9 +220,8 @@ if not st.session_state.logged_in_email:
                     # 👑 VIP BYPASS FOR ADMIN (CEO)
                     if email_input.strip() == ADMIN_EMAIL:
                         st.info("👑 **CEO RECOGNIZED.** Welcome Boss.")
-                        st.markdown("Since this is your first time, please create your Master Password.")
                         new_pwd = st.text_input("Create Master Password", type="password")
-                        if st.button("Set Password & Login", use_container_width=True):
+                        if st.button("Initialize CEO Account", use_container_width=True):
                             if len(new_pwd) < 4:
                                 st.warning("Password must be at least 4 chars.")
                             else:
@@ -210,12 +231,12 @@ if not st.session_state.logged_in_email:
                                     else:
                                         update_user_password(email_input.strip(), new_pwd)
                                     st.session_state.logged_in_email = email_input.strip()
-                                    st.session_state.has_paid = True # Admin always has access
+                                    st.session_state.has_paid = True
                                     st.rerun()
                                     
-                    # NORMAL CUSTOMER FLOW (REQUIRES OTP)
+                    # NORMAL CUSTOMER FLOW
                     else:
-                        st.info("Create a new Creator Account to continue.")
+                        st.info("Create a new AutoX Account.")
                         
                         if not st.session_state.otp_sent:
                             if st.button("Send Verification Code", use_container_width=True):
@@ -227,16 +248,16 @@ if not st.session_state.logged_in_email:
                                         st.session_state.auth_purpose = "signup"
                                         st.rerun()
                                     else:
-                                        st.error("Failed to send email. Check Server Config.")
+                                        st.error("Failed to send email.")
                         
                         if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "signup":
-                            st.success("Verification code sent to your email.")
+                            st.success("Verification code sent.")
                             otp_in = st.text_input("Enter code")
                             new_pwd = st.text_input("Create password", type="password")
                             
-                            if st.button("Next", use_container_width=True):
+                            if st.button("Complete Signup", use_container_width=True):
                                 if otp_in.strip() != st.session_state.expected_otp:
-                                    st.error("Wrong code. Try again.")
+                                    st.error("Wrong code.")
                                 elif len(new_pwd) < 4:
                                     st.warning("Password must be at least 4 chars.")
                                 else:
@@ -246,7 +267,6 @@ if not st.session_state.logged_in_email:
                                         else:
                                             update_user_password(email_input.strip(), new_pwd)
                                             user['has_paid'] = user.get('has_paid', False)
-                                        
                                         st.session_state.logged_in_email = email_input.strip()
                                         st.session_state.has_paid = user.get('has_paid', False)
                                         st.session_state.otp_sent = False
@@ -255,20 +275,18 @@ if not st.session_state.logged_in_email:
                 # SCENARIO 2: EXISTING USER
                 else:
                     pwd_input = st.text_input("Enter your password", type="password")
-                    
                     c_btn1, c_btn2 = st.columns(2)
                     with c_btn1:
-                        if st.button("Next", use_container_width=True):
+                        if st.button("Login", use_container_width=True):
                             if pwd_input == user['password']:
                                 st.session_state.logged_in_email = user['email']
-                                # Auto-grant access to admin even if has_paid is False
                                 if user['email'] == ADMIN_EMAIL:
                                     st.session_state.has_paid = True
                                 else:
                                     st.session_state.has_paid = user['has_paid']
                                 st.rerun()
                             else:
-                                st.error("Wrong password. Try again.")
+                                st.error("Wrong password.")
                     
                     with c_btn2:
                         if st.button("Forgot password?", use_container_width=True):
@@ -283,11 +301,9 @@ if not st.session_state.logged_in_email:
                                     st.error("Failed to send email.")
                     
                     if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "login":
-                        st.divider()
-                        st.info("A verification code was sent to your email.")
+                        st.info("Verification code sent.")
                         otp_in = st.text_input("Enter code")
-                        
-                        if st.button("Verify", use_container_width=True):
+                        if st.button("Verify & Login", use_container_width=True):
                             if otp_in.strip() == st.session_state.expected_otp:
                                 st.session_state.logged_in_email = user['email']
                                 if user['email'] == ADMIN_EMAIL:
@@ -297,43 +313,42 @@ if not st.session_state.logged_in_email:
                                 st.session_state.otp_sent = False
                                 st.rerun()
                             else:
-                                st.error("Wrong code. Try again.")
-
+                                st.error("Wrong code.")
     st.stop()
 
 
 # --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
-    st.markdown("<h2 style='color: #0F0F0F !important;'>▶️ YouTube AI Studio</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #606060 !important;'>{st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
+    st.markdown("<h2><span class='brand-text'>AutoX</span></h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #606060 !important; font-size: 12px;'>Logged in as: {st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
     if st.button("Sign out"):
         st.session_state.logged_in_email = None
         st.rerun()
     st.divider()
     
     if st.session_state.logged_in_email == ADMIN_EMAIL:
-        st.write("### ⚙️ YouTube Analytics (Admin)")
-        admin_mode = st.radio("Admin", ["None", "📊 Channel Analytics"], label_visibility="collapsed")
+        st.write("### 👑 Executive (CEO)")
+        admin_mode = st.radio("Admin", ["None", "📊 Revenue & Users"], label_visibility="collapsed")
     else:
         admin_mode = "None"
         
-    st.write("### 💎 YouTube Premium")
-    agent_mode = st.radio("Agent", ["None", "🤖 YouTube Auto-Creator (Pro)"], label_visibility="collapsed")
+    st.write("### 💎 AutoX Pro")
+    agent_mode = st.radio("Agent", ["None", "🤖 AutoX Video Agent"], label_visibility="collapsed")
     
-    st.write("### 🏠 Studio Home")
-    dashboard_btn = st.radio("Dashboard", ["None", "Creator Dashboard"], label_visibility="collapsed")
+    st.write("### 🏠 Hub")
+    dashboard_btn = st.radio("Dashboard", ["None", "App Dashboard"], label_visibility="collapsed")
     
-    st.write("### 🎥 Content Creation")
-    media_mode = st.radio("Media", ["None", "🎬 Auto Shorts", "🖼️ Thumbnail Generator"], label_visibility="collapsed")
+    st.write("### 🎥 Modular Tools")
+    media_mode = st.radio("Media", ["None", "🎬 Auto Shorts (Free)", "🖼️ Thumbnails"], label_visibility="collapsed")
     
-    st.write("### ✍️ Community & Posts")
-    content_mode = st.radio("Content", ["None", "✍️ Community Articles", "📱 Social Media Sync"], label_visibility="collapsed")
+    st.write("### ✍️ Text Tools")
+    content_mode = st.radio("Content", ["None", "✍️ Blogs & Posts", "📱 Social Sync"], label_visibility="collapsed")
     
     st.divider()
-    st.caption("Powered by AutoX AI")
+    st.caption("AutoX AI Inc.")
 
 
-app_mode = "Creator Dashboard"
+app_mode = "App Dashboard"
 for mode in [admin_mode, agent_mode, dashboard_btn, media_mode, content_mode]:
     if mode != "None":
         app_mode = mode
@@ -343,7 +358,7 @@ try:
     user_gemini_key = st.secrets["GEMINI_API_KEY"]
     user_pexels_key = st.secrets["PEXELS_API_KEY"]
 except:
-    st.error("System configuration error. Please contact support.")
+    st.error("System configuration error. Keys missing.")
     st.stop()
 
 def check_keys():
@@ -354,111 +369,139 @@ def check_keys():
 # ==========================================
 # PAGE: ADMIN DASHBOARD
 # ==========================================
-if app_mode == "📊 Channel Analytics":
-    st.title("📊 YouTube Studio Analytics")
-    st.markdown("Manage your creator network and grant YouTube Premium Access.")
+if app_mode == "📊 Revenue & Users":
+    st.title("📊 CEO Dashboard")
+    st.markdown("Manage your AutoX platform.")
     st.divider()
     
     users = get_all_users()
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Subscribers (Users)", len(users))
-    c2.metric("YouTube Premium (Paid)", len([u for u in users if u.get('has_paid')]))
+    c1.metric("Total Users", len(users))
+    c2.metric("Pro Subscribers", len([u for u in users if u.get('has_paid')]))
     c3.metric("Estimated Revenue", f"${len([u for u in users if u.get('has_paid')]) * 99}")
     
-    st.write("### ⚙️ Manage Creator Access")
+    st.write("### ⚙️ Manual Access Override")
+    st.caption("Use this to manually grant access until Stripe Webhooks are connected.")
     if not users:
         st.write("No users found.")
     else:
         user_emails = [u['email'] for u in users]
-        selected_user = st.selectbox("Select Creator Email:", user_emails)
+        selected_user = st.selectbox("Select User Email:", user_emails)
         current_status = next((u.get('has_paid') for u in users if u['email'] == selected_user), False)
         
-        st.info(f"Current Status: **{'✅ Premium Active' if current_status else '❌ Standard Account'}**")
+        st.info(f"Current Status: **{'✅ PRO Active' if current_status else '❌ Standard Account'}**")
         
-        new_status = st.radio("Change Status To:", [True, False], format_func=lambda x: "Enable Premium (Unlock)" if x else "Disable Premium (Lock)")
+        new_status = st.radio("Change Status To:", [True, False], format_func=lambda x: "Grant PRO Access" if x else "Revoke PRO Access")
         if st.button("Save Changes"):
-            with st.spinner("Updating Google servers..."):
+            with st.spinner("Updating database..."):
                 update_user_access(selected_user, new_status)
                 if selected_user == st.session_state.logged_in_email:
                     st.session_state.has_paid = new_status
-                st.success("Creator access updated successfully!")
+                st.success("Access updated successfully!")
                 time.sleep(1)
                 st.rerun()
 
 # ==========================================
-# PAGE: YOUTUBE AI AGENT (PRO) 
+# PAGE: AUTOX VIDEO AGENT (PRO) 
 # ==========================================
-elif app_mode == "🤖 YouTube Auto-Creator (Pro)":
-    st.title("🤖 YouTube Auto-Creator")
+elif app_mode == "🤖 AutoX Video Agent":
+    st.title("🤖 AutoX Video Agent")
     
     is_authorized = st.session_state.has_paid or st.session_state.logged_in_email == ADMIN_EMAIL
     
     if not is_authorized:
-        st.error("🔒 **YOUTUBE PREMIUM REQUIRED**")
-        st.markdown("The Auto-Creator is an exclusive feature for YouTube Premium members. It generates full videos, thumbnails, and SEO automatically.")
+        st.error("🔒 **AUTOX PRO REQUIRED**")
+        st.markdown("The Video Agent generates full YouTube & Instagram videos automatically.")
         st.divider()
-        st.write("### 💳 Upgrade to Premium")
-        st.info("Your account does not have an active Premium subscription.")
-        st.markdown("[👉 Upgrade Now for $99 (Gumroad)](#)")
+        
+        st.write("### 💳 Upgrade to PRO")
+        st.info("To purchase a license, complete your payment below.")
+        payment_link = st.secrets.get("PAYMENT_LINK", "https://razorpay.com/")
+        st.markdown(f"<a href='{payment_link}' target='_blank'><button style='width:100%; padding:15px; background:linear-gradient(90deg, #FF0055 0%, #0033FF 100%); color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px;'>💳 UPGRADE NOW - $99</button></a>", unsafe_allow_html=True)
+        st.caption("Note: Your account will be upgraded instantly once the payment webhook is verified.")
     
     else:
-        st.success("✅ **YouTube Premium Active. Welcome Creator.**")
+        st.success("✅ **PRO Active. Ready to generate.**")
         model = check_keys()
-        agent_topic = st.text_input("🎯 Video Idea or Title:")
-        agent_voice = st.selectbox("🗣️ Select Voice Actor:", list(LANGUAGE_VOICES.keys()))
+        agent_topic = st.text_input("🎯 Video Idea or Topic:")
         
-        if st.button("Create Video", use_container_width=True) and agent_topic:
-            with st.status("🤖 AI is creating your YouTube video...", expanded=True) as status:
+        c1, c2 = st.columns(2)
+        with c1:
+            agent_format = st.selectbox("🎥 Video Format (YouTube/Insta):", ["YouTube Shorts / Reels (9:16)", "YouTube Standard (16:9)"])
+        with c2:
+            agent_voice = st.selectbox("🗣️ Voice Actor:", list(LANGUAGE_VOICES.keys()))
+            
+        is_landscape = "16:9" in agent_format
+        width, height = (1280, 720) if is_landscape else (720, 1280)
+        orientation = "landscape" if is_landscape else "portrait"
+        
+        if st.button("Generate Final Video", use_container_width=True) and agent_topic:
+            with st.status("🤖 AutoX is crafting your masterpiece...", expanded=True) as status:
                 try:
                     lang, code = LANGUAGE_VOICES[agent_voice]
                     st.write("✍️ Writing script & SEO...")
-                    prompt = f"Write a 60-second YouTube Shorts script about: {agent_topic}. Language: {lang}. Format EXACTLY like this:\nKEYWORDS: kw1, kw2, kw3\nSCRIPT:\n[script]\nSEO_TITLE:\n[title]\nSEO_TAGS:\n[tags]"
+                    prompt = f"Write a 60-second video script about: {agent_topic}. Format: {agent_format}. Language: {lang}. Format EXACTLY like this:\nKEYWORDS: kw1, kw2, kw3\nSCRIPT:\n[script]\nSEO_TITLE:\n[title]\nSEO_TAGS:\n[tags]"
                     res = model.generate_content(prompt).text
                     
                     script = res.split("SCRIPT:")[1].split("SEO_TITLE:")[0].strip()
                     kws = res.split("SCRIPT:")[0].replace("KEYWORDS:", "").strip().split(",")[:3]
                     seo_data = res.split("SEO_TITLE:")[1].strip()
                     
-                    st.write("🎙️ Recording voiceover...")
+                    st.write("🎙️ Synthesizing Voice...")
                     audio_path, vtt_path = "agent_voice.mp3", "agent_voice.vtt"
                     subprocess.run(["python3", "-m", "edge_tts", "--text", script, "--voice", code, "--write-media", audio_path, "--write-subtitles", vtt_path], check=True)
                     
-                    st.write("🎥 Fetching stock footage...")
+                    st.write("🎥 Fetching Cinematic Footage...")
                     videos = []
                     headers = {"Authorization": user_pexels_key}
                     for kw in kws:
-                        r = requests.get(f"https://api.pexels.com/videos/search?query={kw.strip()}&per_page=1&orientation=portrait&size=medium", headers=headers).json()
+                        r = requests.get(f"https://api.pexels.com/videos/search?query={kw.strip()}&per_page=1&orientation={orientation}&size=medium", headers=headers).json()
                         vdata = r.get('videos', [])
                         if vdata and vdata[0].get('video_files'):
                             with open(f"v_{kw}.mp4", 'wb') as f:
                                 f.write(requests.get(vdata[0]['video_files'][0]['link']).content)
-                            videos.append(VideoFileClip(f"v_{kw}.mp4").resize(newsize=(720, 1280)))
+                            
+                            clip = VideoFileClip(f"v_{kw}.mp4").resize(newsize=(width, height))
+                            # Add basic transition: crossfade
+                            if len(videos) > 0:
+                                clip = clip.crossfadein(0.5)
+                            videos.append(clip)
                     
                     if not videos:
                         with open("fb.jpg", 'wb') as f:
-                            f.write(requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(agent_topic)}?width=720&height=1280&nologo=true").content)
-                        videos.append(ImageClip("fb.jpg").resize(newsize=(720, 1280)))
+                            f.write(requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(agent_topic)}?width={width}&height={height}&nologo=true").content)
+                        videos.append(ImageClip("fb.jpg").resize(newsize=(width, height)).set_duration(5))
 
-                    st.write("🎞️ Editing video & subtitles...")
+                    st.write("🎞️ Rendering Advanced Timeline (Transitions & Subtitles)...")
                     final_path = "agent_final.mp4"
                     audioclip = AudioFileClip(audio_path)
-                    vis = concatenate_videoclips(videos, method="compose") if len(videos) > 1 else videos[0]
+                    
+                    # Compose with crossfades
+                    if len(videos) > 1:
+                        vis = concatenate_videoclips(videos, padding=-0.5, method="compose")
+                    else:
+                        vis = videos[0]
+                        
                     vis = vis.fx(vfx.loop, duration=audioclip.duration) if vis.duration < audioclip.duration else vis.subclip(0, audioclip.duration)
                     final_vid = vis.set_audio(audioclip)
-                    try: final_vid = add_subtitles(final_vid, vtt_path)
-                    except: pass
+                    
+                    try: 
+                        final_vid = add_subtitles(final_vid, vtt_path, width, height)
+                    except: 
+                        pass
+                    
                     final_vid.write_videofile(final_path, fps=24, codec="libx264", audio_codec="aac", logger=None)
                     
-                    st.write("🖼️ Generating custom thumbnail...")
-                    p = model.generate_content(f"Create an 8k hyper-realistic image prompt for a YouTube thumbnail about: '{agent_topic}'. NO TEXT. Max 30 words.").text.strip()
+                    st.write("🖼️ Generating 8K Thumbnail...")
+                    p = model.generate_content(f"Create an 8k hyper-realistic image prompt for a video thumbnail about: '{agent_topic}'. NO TEXT. Max 30 words.").text.strip()
                     thumb_img = requests.get(f"https://image.pollinations.ai/prompt/{urllib.parse.quote(p)}?width=1280&height=720&nologo=true").content
                     with open("agent_thumb.jpg", "wb") as f:
                         f.write(thumb_img)
                     
-                    status.update(label="✅ Video is ready to publish!", state="complete", expanded=True)
+                    status.update(label="✅ Render Complete!", state="complete", expanded=True)
                     
                     st.divider()
-                    st.subheader("🎉 Your Upload Package")
+                    st.subheader("🎉 Your Video is Ready")
                     c1, c2, c3 = st.columns(3)
                     with c1:
                         st.video(final_path)
@@ -473,20 +516,22 @@ elif app_mode == "🤖 YouTube Auto-Creator (Pro)":
                         st.download_button("💾 Download SEO", seo_data, "SEO_Data.txt")
                         
                 except Exception as e:
-                    status.update(label="❌ Error creating video", state="error")
+                    status.update(label="❌ Render Failed", state="error")
                     st.error(e)
 
 # ==========================================
 # PAGE: DASHBOARD 
 # ==========================================
-elif app_mode == "Creator Dashboard":
-    st.title("▶️ Creator Dashboard")
-    st.markdown("Welcome to YouTube AI Studio. Manage your content generation below.")
-    st.write("### 🛠️ Official Tools")
+elif app_mode == "App Dashboard":
+    st.title("⚡ AutoX Hub")
+    st.markdown("Welcome to the AutoX ecosystem. Select a module to begin.")
+    
+    st.write("### 🛠️ Active Modules")
     c1, c2 = st.columns(2)
     with c1:
-        st.error("**🤖 YouTube Auto-Creator:** All-in-one autonomous bot")
-        st.info("**🎬 Auto Shorts:** Faceless 1-click videos")
+        st.markdown("<div class='feature-card'><h4>🤖 AutoX Video Agent (Pro)</h4><p style='color:#606060; font-size:14px;'>Generates full 16:9 YouTube videos or 9:16 Shorts/Reels with advanced transitions and subtitles instantly.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-card'><h4>🎬 Auto Shorts</h4><p style='color:#606060; font-size:14px;'>Basic text-to-video conversion.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-card'><h4>🖼️ Thumbnails</h4><p style='color:#606060; font-size:14px;'>Generate hyper-realistic 8k thumbnails.</p></div>", unsafe_allow_html=True)
     with c2:
-        st.success("**✍️ Community Articles:** SEO optimized blogs")
-        st.success("**📱 Social Sync:** Viral posts for Twitter/IG")
+        st.markdown("<div class='feature-card'><h4>✍️ Blogs & Posts</h4><p style='color:#606060; font-size:14px;'>SEO-optimized long-form articles.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-card'><h4>📱 Social Sync</h4><p style='color:#606060; font-size:14px;'>Automated Twitter/Instagram copy.</p></div>", unsafe_allow_html=True)
