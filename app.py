@@ -104,30 +104,60 @@ def send_otp_email(recipient_email, otp_code, purpose="login"):
     except: return False
 
 
-# --- UI SETUP & LIGHT CSS (RESTORED) ---
+# --- UI SETUP & PREMIUM COLORFUL CSS ---
 st.set_page_config(page_title="AutoX App Portal", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
-        .stApp { background-color: #FAFAFA !important; color: #111111 !important; font-family: 'Roboto', sans-serif; }
-        h1, h2, h3, h4 { color: #111111 !important; font-weight: 900; letter-spacing: -0.5px; }
-        .brand-text { background: linear-gradient(90deg, #FF0055 0%, #0033FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+        
+        /* Modern Colorful Light Theme */
+        .stApp { background-color: #F4F7FE !important; color: #2B3674 !important; font-family: 'Poppins', sans-serif; }
+        h1, h2, h3, h4 { color: #2B3674 !important; font-weight: 800; }
+        
+        .brand-text { 
+            background: linear-gradient(90deg, #4318FF 0%, #868CFF 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; 
+        }
         .yt-text { color: #FF0000; font-weight: 900; }
-        .insta-text { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        .insta-text { 
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; 
+        }
         
-        [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #EBEBEB; box-shadow: 2px 0px 15px rgba(0,0,0,0.02); }
-        [data-testid="stSidebar"] * { color: #111111 !important; }
+        /* Sidebar styling */
+        [data-testid="stSidebar"] { background-color: #FFFFFF !important; box-shadow: 5px 0px 20px rgba(0,0,0,0.03); border: none; }
+        [data-testid="stSidebar"] * { color: #2B3674 !important; font-weight: 600; }
         
-        /* Fixed Buttons */
-        .stButton>button { background: linear-gradient(90deg, #111111 0%, #333333 100%) !important; color: #FFFFFF !important; border: none; border-radius: 8px; font-weight: 700; padding: 12px 24px; }
+        /* Inputs & Buttons */
+        .stButton>button { 
+            background: linear-gradient(90deg, #4318FF 0%, #868CFF 100%) !important; 
+            color: #FFFFFF !important; border: none; border-radius: 12px; font-weight: 700; padding: 12px 24px; transition: all 0.3s;
+        }
+        .stButton>button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(67, 24, 255, 0.2); }
         
-        .stTextInput input, .stSelectbox div[data-baseweb="select"] { background-color: #FFFFFF !important; color: #111111 !important; border: 1px solid #E0E0E0 !important; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-        .stTextInput input:focus { border-color: #0033FF !important; }
+        .stTextInput input, .stSelectbox div[data-baseweb="select"] { 
+            background-color: #FFFFFF !important; color: #2B3674 !important; border: 2px solid #E2E8F0 !important; border-radius: 12px; 
+        }
+        .stTextInput input:focus { border-color: #4318FF !important; }
         
-        .feature-card { background: #FFFFFF; border: 1px solid #EBEBEB; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 16px; }
-        .footer { text-align: center; margin-top: 50px; padding: 30px; border-top: 1px solid #E0E0E0; color: #666; font-size: 14px; }
-        .footer a { color: #0033FF; text-decoration: none; font-weight: bold; }
+        /* Colorful Dashboard Cards */
+        .feature-card { 
+            background: #FFFFFF; border-radius: 20px; padding: 30px; margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s;
+        }
+        .feature-card:hover { transform: translateY(-5px); }
+        .yt-card { border-top: 6px solid #FF0000; }
+        .insta-card { border-top: 6px solid #E1306C; }
+        
+        /* Footer */
+        .footer { text-align: center; margin-top: 50px; padding: 30px; color: #A3AED0; font-size: 15px; font-weight: 600; }
+        .footer a { color: #4318FF; text-decoration: none; }
+        
+        /* Tabs styling */
+        .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+        .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: transparent; border-radius: 4px 4px 0px 0px; gap: 1px; padding-top: 10px; padding-bottom: 10px; }
+        .stTabs [aria-selected="true"] { color: #4318FF !important; font-weight: 800; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -140,94 +170,116 @@ if 'logged_in_email' not in st.session_state:
 
 
 # ==========================================
-# PAGE 1: LOGIN SCREEN (SIMPLE & CLEAN)
+# PAGE 1: TABBED LOGIN SCREEN (RESTORED)
 # ==========================================
 if not st.session_state.logged_in_email:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.write("<br><br><br>", unsafe_allow_html=True)
-        # Show Logo on Login Page
+        st.write("<br><br>", unsafe_allow_html=True)
+        # Logo or Title
         try:
             st.image(Image.open("/Users/princekumarsingh/.gemini/antigravity/brain/14257aba-a9b6-466d-94bd-670877ef98ec/autox_logo_1789214937891.jpg"), use_container_width=True)
         except:
-            st.markdown("<h2 style='text-align: center;'><span class='brand-text'>AutoX</span> Portal</h2>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center;'><span class='brand-text'>AutoX</span> Portal</h1>", unsafe_allow_html=True)
             
-        st.markdown("<p style='text-align: center; color: #606060 !important;'>Sign in to access your AI Workforce.</p>", unsafe_allow_html=True)
-        st.divider()
+        st.markdown("<p style='text-align: center; color: #A3AED0 !important; font-size: 18px;'>Your AI Video Engine awaits.</p>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
         
-        email_input = st.text_input("Work Email", placeholder="Enter your email")
+        # RESTORED TABS
+        tab1, tab2, tab3 = st.tabs(["🔒 Login", "✨ Sign Up (Free Trial)", "🔑 Forgot Password"])
         
-        if email_input:
-            if not is_valid_email(email_input):
-                st.error("Enter a valid email address")
-            else:
-                user = get_user(email_input.strip())
-                
-                # SCENARIO 1: NEW USER
-                if not user or not user.get('password'):
-                    st.info("Create a new AutoX Account.")
-                    if not st.session_state.otp_sent:
-                        if st.button("Send Verification Code", use_container_width=True):
-                            with st.spinner("Sending code..."):
+        # --- TAB 1: LOGIN ---
+        with tab1:
+            st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+            log_email = st.text_input("Email Address", key="log_em")
+            log_pwd = st.text_input("Password", type="password", key="log_pw")
+            if st.button("Log In to AutoX", use_container_width=True):
+                if is_valid_email(log_email):
+                    user = get_user(log_email.strip())
+                    if user and log_pwd == user.get('password'):
+                        st.session_state.logged_in_email = log_email.strip()
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect Email or Password.")
+                else:
+                    st.error("Invalid email format.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        # --- TAB 2: SIGN UP ---
+        with tab2:
+            st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+            reg_email = st.text_input("New Email Address", key="reg_em")
+            
+            if not st.session_state.otp_sent or st.session_state.auth_purpose != "signup":
+                if st.button("Send Verification Code", key="btn_reg_otp"):
+                    if is_valid_email(reg_email):
+                        if get_user(reg_email.strip()):
+                            st.warning("Account already exists. Please login.")
+                        else:
+                            with st.spinner("Sending secure code..."):
                                 otp = str(random.randint(100000, 999999))
-                                if send_otp_email(email_input.strip(), otp, "signup"):
+                                if send_otp_email(reg_email.strip(), otp, "signup"):
                                     st.session_state.otp_sent = True
                                     st.session_state.expected_otp = otp
                                     st.session_state.auth_purpose = "signup"
                                     st.rerun()
                                 else:
                                     st.error("Failed to send email.")
-                    
-                    if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "signup":
-                        st.success("Verification code sent.")
-                        otp_in = st.text_input("Enter code")
-                        new_pwd = st.text_input("Create password", type="password")
-                        if st.button("Complete Signup", use_container_width=True):
-                            if otp_in.strip() != st.session_state.expected_otp:
-                                st.error("Wrong code.")
-                            elif len(new_pwd) < 4:
-                                st.warning("Password must be at least 4 chars.")
-                            else:
-                                if not user: create_user(email_input.strip(), new_pwd)
-                                else: update_user_password(email_input.strip(), new_pwd)
-                                st.session_state.logged_in_email = email_input.strip()
-                                st.session_state.otp_sent = False
-                                st.rerun()
-                
-                # SCENARIO 2: EXISTING USER (FORGOT PASSWORD RESTORED)
-                else:
-                    pwd_input = st.text_input("Enter your password", type="password")
-                    c_btn1, c_btn2 = st.columns(2)
-                    with c_btn1:
-                        if st.button("Login", use_container_width=True):
-                            if pwd_input == user['password']:
-                                st.session_state.logged_in_email = user['email']
-                                st.rerun()
-                            else:
-                                st.error("Wrong password.")
-                    with c_btn2:
-                        if st.button("Forgot password?", use_container_width=True):
-                            with st.spinner("Sending code..."):
+                    else:
+                        st.error("Invalid email.")
+            else:
+                st.success("✅ Code sent to your email!")
+                otp_in = st.text_input("Enter 6-digit Code", key="reg_otp_in")
+                new_pwd = st.text_input("Create Password", type="password", key="reg_pw")
+                if st.button("Create Account", use_container_width=True, key="btn_reg_submit"):
+                    if otp_in.strip() != st.session_state.expected_otp:
+                        st.error("❌ Wrong code.")
+                    elif len(new_pwd) < 4:
+                        st.warning("Password must be at least 4 characters.")
+                    else:
+                        create_user(reg_email.strip(), new_pwd)
+                        st.session_state.logged_in_email = reg_email.strip()
+                        st.session_state.otp_sent = False
+                        st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        # --- TAB 3: FORGOT PASSWORD ---
+        with tab3:
+            st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+            reset_email = st.text_input("Account Email", key="res_em")
+            
+            if not st.session_state.otp_sent or st.session_state.auth_purpose != "reset":
+                if st.button("Send Reset Code", key="btn_res_otp"):
+                    if is_valid_email(reset_email):
+                        if not get_user(reset_email.strip()):
+                            st.error("No account found with this email.")
+                        else:
+                            with st.spinner("Sending secure code..."):
                                 otp = str(random.randint(100000, 999999))
-                                if send_otp_email(email_input.strip(), otp, "login"):
+                                if send_otp_email(reset_email.strip(), otp, "login"):
                                     st.session_state.otp_sent = True
                                     st.session_state.expected_otp = otp
-                                    st.session_state.auth_purpose = "login"
+                                    st.session_state.auth_purpose = "reset"
                                     st.rerun()
-                                else:
-                                    st.error("Failed to send email.")
-                    
-                    if st.session_state.get('otp_sent') and st.session_state.auth_purpose == "login":
-                        st.info("Verification code sent.")
-                        otp_in = st.text_input("Enter code")
-                        if st.button("Verify & Login", use_container_width=True):
-                            if otp_in.strip() == st.session_state.expected_otp:
-                                st.session_state.logged_in_email = user['email']
-                                st.session_state.otp_sent = False
-                                st.rerun()
-                            else:
-                                st.error("Wrong code.")
-    
+                    else:
+                        st.error("Invalid email.")
+            else:
+                st.info("✅ Reset code sent!")
+                otp_in = st.text_input("Enter Reset Code", key="res_otp_in")
+                new_pwd = st.text_input("New Password", type="password", key="res_pw")
+                if st.button("Update Password", use_container_width=True, key="btn_res_submit"):
+                    if otp_in.strip() == st.session_state.expected_otp:
+                        if len(new_pwd) < 4:
+                            st.warning("Password too short.")
+                        else:
+                            update_user_password(reset_email.strip(), new_pwd)
+                            st.session_state.logged_in_email = reset_email.strip()
+                            st.session_state.otp_sent = False
+                            st.rerun()
+                    else:
+                        st.error("❌ Wrong code.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
     st.markdown("""
         <div class='footer'>
             <p>AutoX AI Inc. © 2026 | Created by Prince</p>
@@ -330,11 +382,11 @@ if app_mode == "🏠 Main Hub (Home)":
     
     colA, colB = st.columns(2)
     with colA:
-        st.markdown("<div class='feature-card'><h3 class='yt-text'>YouTube AutoX (PRO)</h3><p>Generates long-form 16:9 cinematic videos with AI voiceovers, subtitles, and smooth transitions.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-card yt-card'><h3 class='yt-text'>YouTube AutoX (PRO)</h3><p>Generates long-form 16:9 cinematic videos with AI voiceovers, subtitles, and smooth transitions.</p></div>", unsafe_allow_html=True)
         try: st.image(Image.open("/Users/princekumarsingh/.gemini/antigravity/brain/14257aba-a9b6-466d-94bd-670877ef98ec/yt_demo_mockup_1789319335368.jpg"), use_container_width=True, caption="YouTube AutoX Dashboard")
         except: pass
     with colB:
-        st.markdown("<div class='feature-card'><h3 class='insta-text'>Instagram AutoX (PRO)</h3><p>Creates viral 9:16 Reels with trendy captions, fast pacing, and engaging hooks designed for the algorithm.</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-card insta-card'><h3 class='insta-text'>Instagram AutoX (PRO)</h3><p>Creates viral 9:16 Reels with trendy captions, fast pacing, and engaging hooks designed for the algorithm.</p></div>", unsafe_allow_html=True)
         try: st.image(Image.open("/Users/princekumarsingh/.gemini/antigravity/brain/14257aba-a9b6-466d-94bd-670877ef98ec/insta_demo_mockup_1789319351037.jpg"), use_container_width=True, caption="Instagram AutoX Viral Reels")
         except: pass
     
