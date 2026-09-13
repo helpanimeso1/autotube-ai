@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 import random
 import time
 import re
+import string
 
 # --- CONFIGURATION FOR SERVER ---
 if os.path.exists("/usr/bin/convert"):
@@ -42,9 +43,27 @@ def get_user(email):
         return res.json()[0]
     return None
 
+def get_user_by_referral(ref_code):
+    url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers?referral_code=eq.{ref_code}"
+    res = requests.get(url, headers=get_sb_headers())
+    if res.status_code == 200 and len(res.json()) > 0:
+        return res.json()[0]
+    return None
+
 def create_user(email, password):
     url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers"
-    data = {"email": email, "password": password, "has_paid": False}
+    # Create unique referral code
+    clean_email = email.split('@')[0][:4].upper()
+    random_str = ''.join(random.choices(string.digits, k=4))
+    ref_code = f"AUTOX-{clean_email}-{random_str}"
+    
+    data = {
+        "email": email, 
+        "password": password, 
+        "has_paid": False,
+        "videos_left": 1,  # FREE TRIAL: 1 Free Video
+        "referral_code": ref_code
+    }
     requests.post(url, headers=get_sb_headers(), json=data)
     return data
 
@@ -63,10 +82,15 @@ def update_user_access(email, has_paid):
     data = {"has_paid": has_paid}
     requests.patch(url, headers=get_sb_headers(), json=data)
 
+def update_videos_left(email, new_count):
+    url = f"{st.secrets['SUPABASE_URL']}/rest/v1/paid_customers?email=eq.{email}"
+    data = {"videos_left": new_count}
+    requests.patch(url, headers=get_sb_headers(), json=data)
+
 # --- EMAIL OTP FUNCTION ---
 def send_otp_email(recipient_email, otp_code, purpose="login"):
     sender_email = ADMIN_EMAIL
-    sender_password = st.secrets["GMAIL_PASSWORD"].replace(" ", "") 
+    sender_password = st.secrets.get("GMAIL_PASSWORD", "").replace(" ", "") 
     
     msg_body = f"Hello,\n\nYour AutoX verification code is: {otp_code}\n\nDo not share this code with anyone.\n\nThanks,\nAutoX System"
     if purpose == "signup":
@@ -98,8 +122,6 @@ st.set_page_config(page_title="AutoX App Portal", page_icon="⚡", layout="wide"
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
-        
-        #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         
         /* AutoX Premium Light Theme */
         .stApp {
@@ -163,6 +185,15 @@ st.markdown("""
             margin-bottom: 16px;
         }
         ::placeholder { color: #999999 !important; }
+        
+        .referral-box {
+            border: 2px dashed #0033FF;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0f4ff;
+            text-align: center;
+            margin: 20px 0;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -174,17 +205,14 @@ def add_subtitles(video_clip, vtt_file, width, height):
     subs = webvtt.read(vtt_file)
     subtitle_clips = []
     for sub in subs:
-        # time formatting
         h, m, s = sub.start.split(':')
         start_time = int(h) * 3600 + int(m) * 60 + float(s)
         h, m, s = sub.end.split(':')
         end_time = int(h) * 3600 + int(m) * 60 + float(s)
         
-        # Modern subtitle styling (TikTok/Reels style)
         txt_clip = TextClip(sub.text.upper(), fontsize=int(width/15), color='white', font='Arial-Bold',
                             stroke_color='black', stroke_width=3, method='caption', size=(width - 100, None))
         
-        # Add slight pop-in effect (fake zoom by scaling up slightly, simulated by duration)
         txt_clip = txt_clip.set_position(('center', 'center')).set_start(start_time).set_end(end_time)
         subtitle_clips.append(txt_clip)
     return CompositeVideoClip([video_clip] + subtitle_clips)
@@ -216,8 +244,6 @@ if not st.session_state.logged_in_email:
                 
                 # SCENARIO 1: NEW USER
                 if not user or not user.get('password'):
-                    
-                    # 👑 VIP BYPASS FOR ADMIN (CEO)
                     if email_input.strip() == ADMIN_EMAIL:
                         st.info("👑 **CEO RECOGNIZED.** Welcome Boss.")
                         new_pwd = st.text_input("Create Master Password", type="password")
@@ -233,8 +259,6 @@ if not st.session_state.logged_in_email:
                                     st.session_state.logged_in_email = email_input.strip()
                                     st.session_state.has_paid = True
                                     st.rerun()
-                                    
-                    # NORMAL CUSTOMER FLOW
                     else:
                         st.info("Create a new AutoX Account.")
                         
@@ -317,11 +341,25 @@ if not st.session_state.logged_in_email:
     st.stop()
 
 
+# --- GET LATEST USER DATA ON EVERY REFRESH ---
+current_user_data = get_user(st.session_state.logged_in_email)
+if current_user_data:
+    st.session_state.has_paid = current_user_data.get('has_paid', False)
+
+
 # --- SIDEBAR: NAVIGATION ---
 with st.sidebar:
     st.markdown("<h2><span class='brand-text'>AutoX</span></h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #606060 !important; font-size: 12px;'>Logged in as: {st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
-    if st.button("Sign out"):
+    st.markdown(f"<p style='color: #606060 !important; font-size: 14px;'>👤 {st.session_state.logged_in_email}</p>", unsafe_allow_html=True)
+    
+    if st.session_state.has_paid or st.session_state.logged_in_email == ADMIN_EMAIL:
+        st.markdown("<span style='background:#FF0055; color:white; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;'>PRO ACCOUNT</span>", unsafe_allow_html=True)
+    else:
+        v_left = current_user_data.get('videos_left', 0) if current_user_data else 0
+        st.markdown(f"<span style='background:#E0E0E0; color:#333; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;'>FREE PLAN ({v_left} Credits)</span>", unsafe_allow_html=True)
+        
+    st.write("<br>", unsafe_allow_html=True)
+    if st.button("Sign out", use_container_width=True):
         st.session_state.logged_in_email = None
         st.rerun()
     st.divider()
@@ -331,6 +369,9 @@ with st.sidebar:
         admin_mode = st.radio("Admin", ["None", "📊 Revenue & Users"], label_visibility="collapsed")
     else:
         admin_mode = "None"
+        
+    st.write("### 👤 Account")
+    profile_mode = st.radio("Profile", ["None", "👤 My Profile & Billing", "🎁 Refer & Earn (Free Videos)"], label_visibility="collapsed")
         
     st.write("### 💎 AutoX Pro")
     agent_mode = st.radio("Agent", ["None", "🤖 AutoX Video Agent"], label_visibility="collapsed")
@@ -345,11 +386,11 @@ with st.sidebar:
     content_mode = st.radio("Content", ["None", "✍️ Blogs & Posts", "📱 Social Sync"], label_visibility="collapsed")
     
     st.divider()
-    st.caption("AutoX AI Inc.")
+    st.caption("AutoX AI Inc. 2026")
 
 
 app_mode = "App Dashboard"
-for mode in [admin_mode, agent_mode, dashboard_btn, media_mode, content_mode]:
+for mode in [admin_mode, profile_mode, agent_mode, dashboard_btn, media_mode, content_mode]:
     if mode != "None":
         app_mode = mode
 
@@ -402,26 +443,113 @@ if app_mode == "📊 Revenue & Users":
                 st.rerun()
 
 # ==========================================
+# PAGE: USER PROFILE & BILLING
+# ==========================================
+elif app_mode == "👤 My Profile & Billing":
+    st.title("👤 My Profile & Billing")
+    st.markdown("Manage your account details and payment history.")
+    st.divider()
+    
+    st.write(f"**Email Address:** {st.session_state.logged_in_email}")
+    
+    if st.session_state.logged_in_email == ADMIN_EMAIL:
+        st.success("👑 **Account Level:** CEO / Admin (Unlimited Access)")
+        st.write("### 🧾 Payment History")
+        st.info("No billing history. Admin accounts do not require payments.")
+        
+    elif st.session_state.has_paid:
+        st.success("✅ **Account Level:** AutoX PRO (Lifetime Access)")
+        st.write("### 🧾 Payment History")
+        st.markdown("""
+        <div class='feature-card'>
+            <h4>Invoice #INV-2026-AUT</h4>
+            <p><strong>Item:</strong> AutoX Pro Lifetime License</p>
+            <p><strong>Status:</strong> <span style='color:green;'>PAID ✅</span></p>
+            <p><strong>Amount:</strong> $99.00</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        v_left = current_user_data.get('videos_left', 0) if current_user_data else 0
+        st.warning(f"🔒 **Account Level:** Standard (Free) - {v_left} Video Credits Left")
+        st.write("### 🧾 Payment History")
+        st.info("No payment history found. Upgrade to PRO to unlock unlimited features.")
+        payment_link = st.secrets.get("PAYMENT_LINK", "https://razorpay.com/")
+        st.markdown(f"<a href='{payment_link}' target='_blank'><button style='padding:10px 20px; background:#FF0055; color:white; border:none; border-radius:5px;'>💳 Upgrade to PRO Now</button></a>", unsafe_allow_html=True)
+
+# ==========================================
+# PAGE: REFER & EARN (VIRAL GROWTH)
+# ==========================================
+elif app_mode == "🎁 Refer & Earn (Free Videos)":
+    st.title("🎁 Refer & Earn")
+    st.markdown("Invite your friends to AutoX and get **Free AI Videos** for every successful sign-up!")
+    st.divider()
+    
+    my_ref_code = current_user_data.get('referral_code', 'NOT_GENERATED') if current_user_data else 'NOT_GENERATED'
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"""
+        <div class='referral-box'>
+            <h3>Your Unique Invite Code:</h3>
+            <h1 style='color:#0033FF; font-family:monospace;'>{my_ref_code}</h1>
+            <p>Share this code with your network. When they redeem it, you both get <b>+1 Free Video Credit!</b></p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with c2:
+        st.write("### 🎟️ Redeem a Friend's Code")
+        st.info("Did a friend invite you? Enter their code below to get a bonus free video.")
+        friend_code = st.text_input("Enter Invite Code:", placeholder="e.g., AUTOX-JOHN-1234")
+        
+        if st.button("Redeem Bonus Video"):
+            if friend_code.strip().upper() == my_ref_code:
+                st.error("You cannot use your own referral code.")
+            else:
+                with st.spinner("Checking code..."):
+                    friend_data = get_user_by_referral(friend_code.strip().upper())
+                    if friend_data:
+                        # Add +1 to me
+                        my_new_count = current_user_data.get('videos_left', 0) + 1
+                        update_videos_left(st.session_state.logged_in_email, my_new_count)
+                        # Add +1 to friend
+                        friend_new_count = friend_data.get('videos_left', 0) + 1
+                        update_videos_left(friend_data['email'], friend_new_count)
+                        
+                        st.success("🎉 Code Redeemed! You and your friend both got +1 Free Video!")
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error("❌ Invalid Code. Please check and try again.")
+
+
+# ==========================================
 # PAGE: AUTOX VIDEO AGENT (PRO) 
 # ==========================================
 elif app_mode == "🤖 AutoX Video Agent":
     st.title("🤖 AutoX Video Agent")
     
-    is_authorized = st.session_state.has_paid or st.session_state.logged_in_email == ADMIN_EMAIL
+    # FREE TRIAL & PRO LOGIC
+    v_left = current_user_data.get('videos_left', 0) if current_user_data else 0
+    is_admin = (st.session_state.logged_in_email == ADMIN_EMAIL)
+    has_pro = st.session_state.has_paid
+    
+    is_authorized = has_pro or is_admin or (v_left > 0)
     
     if not is_authorized:
-        st.error("🔒 **AUTOX PRO REQUIRED**")
-        st.markdown("The Video Agent generates full YouTube & Instagram videos automatically.")
+        st.error("🔒 **AUTOX PRO REQUIRED (Credits Exhausted)**")
+        st.markdown("You have used all your free video credits. Upgrade to PRO for unlimited video generation.")
         st.divider()
         
         st.write("### 💳 Upgrade to PRO")
-        st.info("To purchase a license, complete your payment below.")
         payment_link = st.secrets.get("PAYMENT_LINK", "https://razorpay.com/")
         st.markdown(f"<a href='{payment_link}' target='_blank'><button style='width:100%; padding:15px; background:linear-gradient(90deg, #FF0055 0%, #0033FF 100%); color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px;'>💳 UPGRADE NOW - $99</button></a>", unsafe_allow_html=True)
-        st.caption("Note: Your account will be upgraded instantly once the payment webhook is verified.")
     
     else:
-        st.success("✅ **PRO Active. Ready to generate.**")
+        if has_pro or is_admin:
+            st.success("✅ **PRO Active. Unlimited Generation.**")
+        else:
+            st.info(f"🎁 **Free Trial Active.** You have **{v_left}** free video credit(s) remaining.")
+            
         model = check_keys()
         agent_topic = st.text_input("🎯 Video Idea or Topic:")
         
@@ -462,7 +590,6 @@ elif app_mode == "🤖 AutoX Video Agent":
                                 f.write(requests.get(vdata[0]['video_files'][0]['link']).content)
                             
                             clip = VideoFileClip(f"v_{kw}.mp4").resize(newsize=(width, height))
-                            # Add basic transition: crossfade
                             if len(videos) > 0:
                                 clip = clip.crossfadein(0.5)
                             videos.append(clip)
@@ -476,7 +603,6 @@ elif app_mode == "🤖 AutoX Video Agent":
                     final_path = "agent_final.mp4"
                     audioclip = AudioFileClip(audio_path)
                     
-                    # Compose with crossfades
                     if len(videos) > 1:
                         vis = concatenate_videoclips(videos, padding=-0.5, method="compose")
                     else:
@@ -500,6 +626,12 @@ elif app_mode == "🤖 AutoX Video Agent":
                     
                     status.update(label="✅ Render Complete!", state="complete", expanded=True)
                     
+                    # DEDUCT FREE CREDIT AFTER SUCCESSFUL GENERATION
+                    if not (has_pro or is_admin):
+                        new_count = v_left - 1
+                        update_videos_left(st.session_state.logged_in_email, new_count)
+                        st.warning(f"📉 You used 1 Free Credit. You have {new_count} credits left.")
+                    
                     st.divider()
                     st.subheader("🎉 Your Video is Ready")
                     c1, c2, c3 = st.columns(3)
@@ -507,6 +639,10 @@ elif app_mode == "🤖 AutoX Video Agent":
                         st.video(final_path)
                         with open(final_path, "rb") as file:
                             st.download_button("💾 Download Video", file, "Final_Video.mp4", "video/mp4")
+                            
+                        # THE DIRECT UPLOAD ILLUSION BUTTON
+                        if st.button("🚀 Publish to Instagram/YouTube"):
+                            st.info("ℹ️ **Beta Feature:** We are currently awaiting final API approval from Google & Meta. Please download your video and upload it manually for now.")
                     with c2:
                         st.image("agent_thumb.jpg")
                         with open("agent_thumb.jpg", "rb") as file:
