@@ -85,44 +85,80 @@ st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         
-        /* Bright Colorful Theme */
-        .stApp { background: linear-gradient(180deg, #f0f5ff, #e0e7ff) !important; color: #2b2d42 !important; font-family: 'Inter', sans-serif; }
+        /* Hide Streamlit UI to protect privacy and remove GitHub link */
+        #MainMenu {visibility: hidden;}
+        header {visibility: hidden;}
+        footer {visibility: hidden;}
         
-        h1, h2, h3, h4 { color: #2b2d42 !important; font-weight: 700; letter-spacing: -0.02em; }
-        .hero-title { font-size: 3.5rem !important; font-weight: 900 !important; background: linear-gradient(to right, #2b2d42, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 20px; }
-        .hero-subtitle { font-size: 1.25rem; color: #4b5563; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+        /* Exact JaiPortal Deep Dark Theme */
+        .stApp { 
+            background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(236, 72, 153, 0.06) 0%, transparent 50%),
+                        linear-gradient(180deg, #0a0a14 0%, #0d0d1a 50%, #0a0a14 100%) !important;
+            color: #ffffff !important; 
+            font-family: 'Inter', sans-serif; 
+        }
         
+        h1, h2, h3, h4 { color: #ffffff !important; font-weight: 700; letter-spacing: -0.02em; }
+        
+        .hero-title { 
+            font-size: 3.5rem !important; 
+            font-weight: 900 !important; 
+            background: linear-gradient(to right, #ffffff, #a1a1aa); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            line-height: 1.1; 
+            margin-bottom: 20px;
+        }
+        .hero-subtitle { font-size: 1.25rem; color: #a1a1aa; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+        
+        /* Glassmorphism Cards */
         .jai-card {
-            background-color: #f5f7ff;
-            border: 1px solid #c0c4ff;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 24px;
             transition: all 0.2s ease-in-out;
             height: 100%;
         }
-        .jai-card:hover { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); transform: translateY(-2px); }
-        .jai-card h3 { font-size: 1.25rem !important; margin-bottom: 10px; color: #2b2d42; }
-        .jai-card p { color: #4b5563; font-size: 0.95rem; line-height: 1.5; }
+        .jai-card:hover { 
+            background: rgba(255, 255, 255, 0.08); 
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2); 
+            transform: translateY(-2px); 
+        }
+        .jai-card h3 { font-size: 1.25rem !important; margin-bottom: 10px; color: #ffffff; }
+        .jai-card p { color: #a1a1aa; font-size: 0.95rem; line-height: 1.5; }
         
         /* Top Navigation */
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid #c0c4ff; background: #e0e7ff; }
-        .nav-logo { font-size: 1.5rem; font-weight: 900; color: #2b2d42; text-decoration: none; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(10, 10, 20, 0.8); backdrop-filter: blur(10px); }
+        .nav-logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-decoration: none; }
         
         /* Inputs & Buttons */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] { 
-            background-color: #ffffff !important; color: #2b2d42 !important; border: 1px solid #c0c4ff !important; border-radius: 8px; 
+            background-color: rgba(255, 255, 255, 0.05) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 8px; 
         }
         .stButton>button { 
-            background: #ffffff !important; color: #09090b !important; border: none; border-radius: 8px; font-weight: 600; padding: 10px 24px; transition: 0.2s;
+            background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; font-weight: 600; padding: 10px 24px; transition: 0.2s;
         }
-        .stButton>button:hover { background: #e4e4e7 !important; }
-        .btn-primary>button { background: #3b82f6 !important; color: #ffffff !important; }
-        .btn-primary>button:hover { background: #2563eb !important; }
+        .stButton>button:hover { background: rgba(255, 255, 255, 0.15) !important; }
         
-        .badge { display: inline-block; padding: 4px 10px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px;}
+        /* Gradient Button exact match */
+        .btn-primary>button { 
+            background: linear-gradient(to right, #f97316, #ef4444, #ec4899) !important; 
+            color: #ffffff !important; 
+            border: none;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        .btn-primary>button:hover { 
+            background: linear-gradient(to right, #fb923c, #f87171, #f472b6) !important; 
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+        
+        .badge { display: inline-block; padding: 4px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px;}
         
         /* Footer */
-        .footer { border-top: 1px solid #27272a; padding: 40px 0; margin-top: 80px; text-align: center; color: #71717a; font-size: 0.9rem; }
+        .custom-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 0; margin-top: 80px; text-align: center; color: #71717a; font-size: 0.9rem; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -208,7 +244,14 @@ if not st.session_state.logged_in_email:
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center; color:#71717a; font-size:12px; margin-top:10px;'>No Credit Card Required • Free Trial Included</p>", unsafe_allow_html=True)
 
-    st.write("<br><br><br>", unsafe_allow_html=True)
+    st.write("<br><br>", unsafe_allow_html=True)
+    st.markdown("""
+        <div style="display: flex; justify-content: center; margin-bottom: 60px;">
+            <div style="position: relative; width: 100%; max-width: 800px; padding-bottom: 45%; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25); border: 1px solid rgba(255,255,255,0.1); background: #000;">
+                <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/LXb3EKWsInQ?autoplay=1&mute=1&loop=1&playlist=LXb3EKWsInQ&controls=0&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # --- FEATURES GRID (EXACT JAI COPY) ---
     st.markdown("<h3 style='text-align:center; margin-bottom: 40px;'>Professional YouTube content created automatically</h3>", unsafe_allow_html=True)
@@ -269,7 +312,7 @@ if not st.session_state.logged_in_email:
 
     # Footer
     st.markdown("""
-        <div class='footer'>
+        <div class='custom-footer'>
             © 2026 AutoX Portal. All rights reserved. | Created by Prince<br>
             <a href='https://www.instagram.com/rajputbusyguy?stkn=MTkyaG1zeWZzcWlpMw==' target='_blank' style='color:#71717a;'>Instagram</a>
         </div>
