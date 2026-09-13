@@ -85,32 +85,32 @@ st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         
-        /* Deep Dark Premium Theme */
-        .stApp { background-color: #09090b !important; color: #fafafa !important; font-family: 'Inter', sans-serif; }
+        /* Bright Colorful Theme */
+        .stApp { background: linear-gradient(180deg, #f0f5ff, #e0e7ff) !important; color: #2b2d42 !important; font-family: 'Inter', sans-serif; }
         
-        h1, h2, h3, h4 { color: #ffffff !important; font-weight: 700; letter-spacing: -0.02em; }
-        .hero-title { font-size: 3.5rem !important; font-weight: 900 !important; background: linear-gradient(to right, #ffffff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 20px;}
-        .hero-subtitle { font-size: 1.25rem; color: #a1a1aa; max-width: 700px; margin: 0 auto; line-height: 1.6;}
+        h1, h2, h3, h4 { color: #2b2d42 !important; font-weight: 700; letter-spacing: -0.02em; }
+        .hero-title { font-size: 3.5rem !important; font-weight: 900 !important; background: linear-gradient(to right, #2b2d42, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 20px; }
+        .hero-subtitle { font-size: 1.25rem; color: #4b5563; max-width: 700px; margin: 0 auto; line-height: 1.6; }
         
         .jai-card {
-            background-color: #18181b;
-            border: 1px solid #27272a;
+            background-color: #f5f7ff;
+            border: 1px solid #c0c4ff;
             border-radius: 12px;
             padding: 24px;
             transition: all 0.2s ease-in-out;
             height: 100%;
         }
-        .jai-card:hover { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); transform: translateY(-2px); }
-        .jai-card h3 { font-size: 1.25rem !important; margin-bottom: 10px; }
-        .jai-card p { color: #a1a1aa; font-size: 0.95rem; line-height: 1.5; }
+        .jai-card:hover { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); transform: translateY(-2px); }
+        .jai-card h3 { font-size: 1.25rem !important; margin-bottom: 10px; color: #2b2d42; }
+        .jai-card p { color: #4b5563; font-size: 0.95rem; line-height: 1.5; }
         
         /* Top Navigation */
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid #27272a; background: #09090b; }
-        .nav-logo { font-size: 1.5rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid #c0c4ff; background: #e0e7ff; }
+        .nav-logo { font-size: 1.5rem; font-weight: 900; color: #2b2d42; text-decoration: none; }
         
         /* Inputs & Buttons */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] { 
-            background-color: #18181b !important; color: #fafafa !important; border: 1px solid #27272a !important; border-radius: 8px; 
+            background-color: #ffffff !important; color: #2b2d42 !important; border: 1px solid #c0c4ff !important; border-radius: 8px; 
         }
         .stButton>button { 
             background: #ffffff !important; color: #09090b !important; border: none; border-radius: 8px; font-weight: 600; padding: 10px 24px; transition: 0.2s;
